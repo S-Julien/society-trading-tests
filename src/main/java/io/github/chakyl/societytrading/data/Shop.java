@@ -89,16 +89,17 @@ public record Shop(String shopID, MutableComponent name, ShopOffers trades) impl
                 JsonElement offer = ItemAdapter.ITEM_READER.toJsonTree(trade.getResult());
                 JsonObject offerJson = offer.getAsJsonObject();
                 ResourceLocation offerItemName = new ResourceLocation(offerJson.get("item").getAsString());
-                if (!"minecraft".equals(requestItemName.getNamespace()) && !key.getNamespace().equals(requestItemName.getNamespace())) {
-                    requestJson.addProperty("optional", true);
+                if (!"minecraft".equals(offerItemName.getNamespace()) && !key.getNamespace().equals(offerItemName.getNamespace())) {
+                    offerJson.addProperty("optional", true);
                 }
                 if (!"minecraft".equals(requestItemName.getNamespace()) && !key.getNamespace().equals(requestItemName.getNamespace())) {
                     requestJson.addProperty("optional", true);
                 }
                 if (!"minecraft".equals(secondRequestItemName.getNamespace()) && !key.getNamespace().equals(secondRequestItemName.getNamespace())) {
-                    offerJson.addProperty("optional", true);
+                    secondRequestJson.addProperty("optional", true);
                 }
                 trades.add(requestJson);
+                trades.add(secondRequestJson);
                 trades.add(offerJson);
             }
             return DataResult.success(JsonOps.INSTANCE.convertTo(ops, obj));
@@ -117,10 +118,11 @@ public record Shop(String shopID, MutableComponent name, ShopOffers trades) impl
                     if (json.getAsJsonObject().has("offer") && json.getAsJsonObject().has("request")) {
                         ItemStack request = ItemAdapter.ITEM_READER.fromJson(json.getAsJsonObject().getAsJsonObject("request"), ItemStack.class);
                         ItemStack offer = ItemAdapter.ITEM_READER.fromJson(json.getAsJsonObject().getAsJsonObject("offer"), ItemStack.class);
-                        trades.add(new ShopOffer(request, offer, 1, 1, 1));
                         if (json.getAsJsonObject().has("secondRequest")) {
                             ItemStack secondRequest = ItemAdapter.ITEM_READER.fromJson(json.getAsJsonObject().getAsJsonObject("secondRequest"), ItemStack.class);
                             trades.add(new ShopOffer(request, secondRequest, offer, 1, 1, 1));
+                        } else {
+                            trades.add(new ShopOffer(request, offer, 1, 1, 1));
                         }
                     }
 

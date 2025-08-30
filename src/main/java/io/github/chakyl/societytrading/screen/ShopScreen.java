@@ -158,9 +158,9 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                     pGuiGraphics.pose().pushPose();
                     pGuiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
                     int j1 = k + 2;
-                    this.renderAndDecorateCostA(pGuiGraphics, itemstack1, itemstack, l + i * 2, j1);
+                    this.renderAndDecorateCostA(pGuiGraphics, itemstack1, itemstack, l + TRADE_BUTTON_WIDTH - 24, j1);
                     if (!itemstack2.isEmpty()) {
-                        pGuiGraphics.renderFakeItem(itemstack2, i + l + 50, j1);
+                        pGuiGraphics.renderFakeItem(itemstack2, i + TRADE_BUTTON_WIDTH + 52, j1);
                         pGuiGraphics.renderItemDecorations(this.font, itemstack2, i + l, j1);
                     }
 
@@ -168,7 +168,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                     //result
                     pGuiGraphics.renderFakeItem(itemstack3, l, j1);
                     pGuiGraphics.renderItemDecorations(this.font, itemstack3, l, j1);
-                    pGuiGraphics.drawString(this.font, itemstack3.getHoverName(), l + 16 + 8, j1 + 4, 16777215, true);
+                    pGuiGraphics.drawString(this.font, itemstack3.getHoverName(), l + 16 + 8, j1 + 5, 16777215, true);
                     pGuiGraphics.pose().popPose();
                     k += 20;
                     ++i1;
