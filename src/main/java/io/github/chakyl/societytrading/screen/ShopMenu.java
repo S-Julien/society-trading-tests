@@ -47,18 +47,16 @@ public class ShopMenu extends AbstractContainerMenu {
         this.shop = shop.get();
         this.trader = pTrader;
         this.tradeContainer = new MerchantContainer(pTrader);
-        this.addSlot(new Slot(this.tradeContainer, 0, 136, 37));
-        this.addSlot(new Slot(this.tradeContainer, 1, 162, 37));
-        this.addSlot(new MerchantResultSlot(pPlayerInventory.player, pTrader, this.tradeContainer, 2, 220, 37));
+        this.addSlot(new ShopResultSlot(pPlayerInventory.player, pTrader, this.tradeContainer, 2, 269, 118));
 
         for(int i = 0; i < 3; ++i) {
             for(int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(pPlayerInventory, j + i * 9 + 9, 87 + j * 18, 111 + i * 18));
+                this.addSlot(new Slot(pPlayerInventory, j + i * 9 + 9, 97 + j * 18, 114 + i * 18));
             }
         }
 
         for(int k = 0; k < 9; ++k) {
-            this.addSlot(new Slot(pPlayerInventory, k, 87 + k * 18, 169));
+            this.addSlot(new Slot(pPlayerInventory, k, 97 + k * 18, 172));
         }
 
     }

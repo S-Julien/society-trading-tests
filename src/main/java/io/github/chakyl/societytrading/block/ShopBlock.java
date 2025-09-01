@@ -54,7 +54,7 @@ public class ShopBlock extends HorizontalDirectionalBlock {
         if (!pLevel.isClientSide) {
             OptionalInt optionalint = pPlayer.openMenu(new SimpleMenuProvider((containerId, inventory, player) -> {
                 return new ShopMenu(containerId, inventory);
-            }, Component.translatable("info.splendid_slimes.plort")));
+            }, Component.translatable("shop.society_trading.blacksmith.name")));
         }
         return InteractionResult.sidedSuccess(pLevel.isClientSide());
     }

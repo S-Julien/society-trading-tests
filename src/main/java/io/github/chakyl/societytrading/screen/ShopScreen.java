@@ -32,15 +32,15 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     private static final int SELL_ITEM_2_X = 35;
     private static final int BUY_ITEM_X = 68;
     private static final int LABEL_Y = 6;
-    private static final int NUMBER_OF_OFFER_BUTTONS = 5;
+    private static final int NUMBER_OF_OFFER_BUTTONS = 4;
     private static final int TRADE_BUTTON_X = 5;
     private static final int TRADE_BUTTON_HEIGHT = 20;
-    private static final int TRADE_BUTTON_WIDTH = 153;
+    private static final int TRADE_BUTTON_WIDTH = 185;
     private static final int SCROLLER_HEIGHT = 27;
     private static final int SCROLLER_WIDTH = 6;
-    private static final int SCROLL_BAR_HEIGHT = 104;
-    private static final int SCROLL_BAR_TOP_POS_Y = 6;
-    private static final int SCROLL_BAR_START_X = 241;
+    private static final int SCROLL_BAR_HEIGHT = 80;
+    private static final int SCROLL_BAR_TOP_POS_Y = 18;
+    private static final int SCROLL_BAR_START_X = 283;
     private static final Component TRADES_LABEL = Component.translatable("merchant.trades");
     private int shopItem;
     private final ShopScreen.TradeOfferButton[] tradeOfferButtons = new ShopScreen.TradeOfferButton[NUMBER_OF_OFFER_BUTTONS];
@@ -49,8 +49,8 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
 
     public ShopScreen(ShopMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
-        this.imageWidth = 299;
-        this.imageHeight = 193;
+        this.imageWidth = 296;
+        this.imageHeight = 196;
     }
 
     private void postButtonClick() {
@@ -63,10 +63,10 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         super.init();
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        int k = j + 6;
+        int k = j + 18;
 
         for(int l = 0; l < NUMBER_OF_OFFER_BUTTONS; ++l) {
-            this.tradeOfferButtons[l] = this.addRenderableWidget(new ShopScreen.TradeOfferButton(i + 87, k, l, (p_99174_) -> {
+            this.tradeOfferButtons[l] = this.addRenderableWidget(new ShopScreen.TradeOfferButton(i + 97, k, l, (p_99174_) -> {
                 if (p_99174_ instanceof ShopScreen.TradeOfferButton) {
                     this.shopItem = ((ShopScreen.TradeOfferButton)p_99174_).getIndex() + this.scrollOff;
                     this.postButtonClick();
@@ -79,19 +79,11 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     }
 
     protected void renderLabels(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-//        int i = this.menu.getTraderLevel();
-//        if (i > 0 && i <= 5 && this.menu.showProgressBar()) {
-//            Component component = this.title.copy().append(LEVEL_SEPARATOR).append(Component.translatable("merchant.level." + i));
-//            int j = this.font.width(component);
-//            int k = 49 + this.imageWidth / 2 - j / 2;
-//            pGuiGraphics.drawString(this.font, component, k, 6, 4210752, false);
-//        } else {
-//            pGuiGraphics.drawString(this.font, this.title, 49 + this.imageWidth / 2 - this.font.width(this.title) / 2, 6, 4210752, false);
-//        }
-//
-//        pGuiGraphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 4210752, false);
-        int l = this.font.width(TRADES_LABEL);
-        pGuiGraphics.drawString(this.font, TRADES_LABEL, (5 - l / 2) + 20, 82, 4210752, false);
+        int centralX = (5 - this.font.width(TRADES_LABEL) / 2) + 110;
+        pGuiGraphics.drawString(this.font, this.title, (5 - this.font.width(this.title) / 2) + 26, LABEL_Y, 4210752, false);
+        pGuiGraphics.drawString(this.font, TRADES_LABEL, centralX, LABEL_Y, 4210752, false);
+        pGuiGraphics.drawString(this.font, this.playerInventoryTitle, centralX, 102, 4210752, false);
+
     }
 
     protected void renderBg(GuiGraphics pGuiGraphics, float pPartialTick, int pMouseX, int pMouseY) {
@@ -117,16 +109,15 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         int i = pShopOffers.size() + 1 - NUMBER_OF_OFFER_BUTTONS;
         if (i > 1) {
             int j = SCROLL_BAR_HEIGHT - (SCROLLER_HEIGHT + (i - 1) * SCROLL_BAR_HEIGHT / i);
-            int k = 1 + j / i + SCROLL_BAR_HEIGHT / i;
-            int l = SCROLL_BAR_HEIGHT - SCROLLER_HEIGHT - 4;
+            int k = j / i + SCROLL_BAR_HEIGHT / i;
+            int l = SCROLL_BAR_HEIGHT - SCROLLER_HEIGHT;
             int i1 = Math.min(l, this.scrollOff * k);
             if (this.scrollOff == i - 1) {
                 i1 = l;
             }
-
-            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + i1, 0, 299.0F, 0.0F, 6, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + i1, 0, 297.0F, 0.0F, 6, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         } else {
-            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y, 0, 305.0F, 0.0F, 6, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y, 0, 303.0F, 0.0F, 6, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         }
 
     }
@@ -145,7 +136,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
             int i = (this.width - this.imageWidth) / 2;
             int j = (this.height - this.imageHeight) / 2;
             int k = j + 4 + 1;
-            int l = i + 87 + NUMBER_OF_OFFER_BUTTONS;
+            int l = i + 96 + NUMBER_OF_OFFER_BUTTONS;
             this.renderScroller(pGuiGraphics, i, j, shopoffers);
             int i1 = 0;
 
@@ -157,11 +148,11 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                     ItemStack itemstack3 = shopoffer.getResult();
                     pGuiGraphics.pose().pushPose();
                     pGuiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
-                    int j1 = k + 2;
+                    int j1 = k + 14;
                     this.renderAndDecorateCostA(pGuiGraphics, itemstack1, itemstack, l + TRADE_BUTTON_WIDTH - 24, j1);
                     if (!itemstack2.isEmpty()) {
-                        pGuiGraphics.renderFakeItem(itemstack2, i + TRADE_BUTTON_WIDTH + 52, j1);
-                        pGuiGraphics.renderItemDecorations(this.font, itemstack2, i + l, j1);
+                        pGuiGraphics.renderFakeItem(itemstack2, i + TRADE_BUTTON_WIDTH + 60, j1);
+                        pGuiGraphics.renderItemDecorations(this.font, itemstack2, i + TRADE_BUTTON_WIDTH + 60, j1);
                     }
 
                     this.renderButtonArrows(pGuiGraphics, shopoffer, i, j1);
@@ -304,15 +295,15 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         public void renderToolTip(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
             if (this.isHovered && ShopScreen.this.menu.getOffers().size() > this.index + ShopScreen.this.scrollOff) {
                 if (pMouseX < this.getX() + 20) {
-                    ItemStack itemstack = ShopScreen.this.menu.getOffers().get(this.index + ShopScreen.this.scrollOff).getCostA();
+                    ItemStack itemstack = ShopScreen.this.menu.getOffers().get(this.index + ShopScreen.this.scrollOff).getResult();
                     pGuiGraphics.renderTooltip(ShopScreen.this.font, itemstack, pMouseX, pMouseY);
-                } else if (pMouseX < this.getX() + 50 && pMouseX > this.getX() + 30) {
+                } else if (pMouseX < this.getX() + 165 && pMouseX > this.getX() + 148) {
                     ItemStack itemstack2 = ShopScreen.this.menu.getOffers().get(this.index + ShopScreen.this.scrollOff).getCostB();
                     if (!itemstack2.isEmpty()) {
                         pGuiGraphics.renderTooltip(ShopScreen.this.font, itemstack2, pMouseX, pMouseY);
                     }
-                } else if (pMouseX > this.getX() + 65) {
-                    ItemStack itemstack1 = ShopScreen.this.menu.getOffers().get(this.index + ShopScreen.this.scrollOff).getResult();
+                } else if (pMouseX > this.getX() + 164) {
+                    ItemStack itemstack1 = ShopScreen.this.menu.getOffers().get(this.index + ShopScreen.this.scrollOff).getCostA();
                     pGuiGraphics.renderTooltip(ShopScreen.this.font, itemstack1, pMouseX, pMouseY);
                 }
             }
