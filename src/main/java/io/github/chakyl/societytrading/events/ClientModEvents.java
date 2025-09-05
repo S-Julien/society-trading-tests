@@ -3,6 +3,7 @@ package io.github.chakyl.societytrading.events;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.registry.ModElements;
+import io.github.chakyl.societytrading.screen.SelectorScreen;
 import io.github.chakyl.societytrading.screen.ShopMenu;
 import io.github.chakyl.societytrading.screen.ShopScreen;
 import net.minecraft.client.Minecraft;
@@ -31,6 +32,7 @@ public class ClientModEvents {
     public static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
             MenuScreens.register(ModElements.Menus.SHOP_MENU.get(), ShopScreen::new);
+            MenuScreens.register(ModElements.Menus.SELECTOR_MENU.get(), SelectorScreen::new);
         });
 
     }

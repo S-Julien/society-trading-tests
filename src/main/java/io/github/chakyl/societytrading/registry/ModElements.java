@@ -7,6 +7,7 @@ import dev.shadowsoffire.placebo.menu.MenuUtil;
 import dev.shadowsoffire.placebo.registry.DeferredHelper;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.block.ShopBlock;
+import io.github.chakyl.societytrading.screen.SelectorMenu;
 import io.github.chakyl.societytrading.screen.ShopMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -58,6 +59,7 @@ public class ModElements {
 
     public static class Menus {
         public static final RegistryObject<MenuType<ShopMenu>> SHOP_MENU = R.menu("shop_menu", () -> MenuUtil.type(ShopMenu::new));
+        public static final RegistryObject<MenuType<SelectorMenu>> SELECTOR_MENU = R.menu("selector_menu", () -> MenuUtil.type(SelectorMenu::new));
 
         private static void bootstrap() {
         }

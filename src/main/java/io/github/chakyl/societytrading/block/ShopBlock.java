@@ -1,6 +1,7 @@
 package io.github.chakyl.societytrading.block;
 
 import dev.shadowsoffire.placebo.block_entity.TickingEntityBlock;
+import io.github.chakyl.societytrading.screen.SelectorMenu;
 import io.github.chakyl.societytrading.screen.ShopMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -52,9 +53,7 @@ public class ShopBlock extends HorizontalDirectionalBlock {
     @Override
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
         if (!pLevel.isClientSide) {
-            OptionalInt optionalint = pPlayer.openMenu(new SimpleMenuProvider((containerId, inventory, player) -> {
-                return new ShopMenu(containerId, inventory);
-            }, Component.translatable("shop.society_trading.blacksmith.name")));
+            OptionalInt optionalint = pPlayer.openMenu(new SimpleMenuProvider((containerId, inventory, player) -> new SelectorMenu(containerId, inventory), Component.translatable("shop.society_trading.selector.name")));
         }
         return InteractionResult.sidedSuccess(pLevel.isClientSide());
     }

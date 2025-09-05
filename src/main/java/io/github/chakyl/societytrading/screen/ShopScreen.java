@@ -34,13 +34,13 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     private static final int LABEL_Y = 6;
     private static final int NUMBER_OF_OFFER_BUTTONS = 4;
     private static final int TRADE_BUTTON_X = 5;
-    private static final int TRADE_BUTTON_HEIGHT = 20;
+    private static final int TRADE_BUTTON_HEIGHT = 22;
     private static final int TRADE_BUTTON_WIDTH = 185;
     private static final int SCROLLER_HEIGHT = 27;
     private static final int SCROLLER_WIDTH = 6;
-    private static final int SCROLL_BAR_HEIGHT = 80;
+    private static final int SCROLL_BAR_HEIGHT = 88;
     private static final int SCROLL_BAR_TOP_POS_Y = 18;
-    private static final int SCROLL_BAR_START_X = 283;
+    private static final int SCROLL_BAR_START_X = 274;
     private static final Component TRADES_LABEL = Component.translatable("merchant.trades");
     private int shopItem;
     private final ShopScreen.TradeOfferButton[] tradeOfferButtons = new ShopScreen.TradeOfferButton[NUMBER_OF_OFFER_BUTTONS];
@@ -49,8 +49,8 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
 
     public ShopScreen(ShopMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
-        this.imageWidth = 296;
-        this.imageHeight = 196;
+        this.imageWidth = 288;
+        this.imageHeight = 204;
     }
 
     private void postButtonClick() {
@@ -66,23 +66,23 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         int k = j + 18;
 
         for(int l = 0; l < NUMBER_OF_OFFER_BUTTONS; ++l) {
-            this.tradeOfferButtons[l] = this.addRenderableWidget(new ShopScreen.TradeOfferButton(i + 97, k, l, (p_99174_) -> {
+            this.tradeOfferButtons[l] = this.addRenderableWidget(new ShopScreen.TradeOfferButton(i + 88, k, l, (p_99174_) -> {
                 if (p_99174_ instanceof ShopScreen.TradeOfferButton) {
                     this.shopItem = ((ShopScreen.TradeOfferButton)p_99174_).getIndex() + this.scrollOff;
                     this.postButtonClick();
                 }
 
             }));
-            k += 20;
+            k += TRADE_BUTTON_HEIGHT;
         }
 
     }
 
     protected void renderLabels(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-        int centralX = (5 - this.font.width(TRADES_LABEL) / 2) + 110;
+        int centralX = (5 - this.font.width(TRADES_LABEL) / 2) + 102;
         pGuiGraphics.drawString(this.font, this.title, (5 - this.font.width(this.title) / 2) + 26, LABEL_Y, 4210752, false);
         pGuiGraphics.drawString(this.font, TRADES_LABEL, centralX, LABEL_Y, 4210752, false);
-        pGuiGraphics.drawString(this.font, this.playerInventoryTitle, centralX, 102, 4210752, false);
+        pGuiGraphics.drawString(this.font, this.playerInventoryTitle, centralX, 110, 4210752, false);
 
     }
 
@@ -115,9 +115,9 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
             if (this.scrollOff == i - 1) {
                 i1 = l;
             }
-            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + i1, 0, 297.0F, 0.0F, 6, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + i1, 0, 288.0F, 0.0F, 6, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         } else {
-            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y, 0, 303.0F, 0.0F, 6, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y, 0, 294.0F, 0.0F, 6, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         }
 
     }
@@ -136,7 +136,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
             int i = (this.width - this.imageWidth) / 2;
             int j = (this.height - this.imageHeight) / 2;
             int k = j + 4 + 1;
-            int l = i + 96 + NUMBER_OF_OFFER_BUTTONS;
+            int l = i + 86 + NUMBER_OF_OFFER_BUTTONS;
             this.renderScroller(pGuiGraphics, i, j, shopoffers);
             int i1 = 0;
 
@@ -148,20 +148,24 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                     ItemStack itemstack3 = shopoffer.getResult();
                     pGuiGraphics.pose().pushPose();
                     pGuiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
-                    int j1 = k + 14;
-                    this.renderAndDecorateCostA(pGuiGraphics, itemstack1, itemstack, l + TRADE_BUTTON_WIDTH - 24, j1);
+                    int j1 = k + 16;
+                    this.renderAndDecorateCostA(pGuiGraphics, itemstack1, itemstack, l + TRADE_BUTTON_WIDTH - 21, j1);
                     if (!itemstack2.isEmpty()) {
-                        pGuiGraphics.renderFakeItem(itemstack2, i + TRADE_BUTTON_WIDTH + 60, j1);
-                        pGuiGraphics.renderItemDecorations(this.font, itemstack2, i + TRADE_BUTTON_WIDTH + 60, j1);
+                        pGuiGraphics.renderFakeItem(itemstack2, i + TRADE_BUTTON_WIDTH + 54, j1);
+                        pGuiGraphics.renderItemDecorations(this.font, itemstack2, i + TRADE_BUTTON_WIDTH + 54, j1);
                     }
 
-                    this.renderButtonArrows(pGuiGraphics, shopoffer, i, j1);
                     //result
+                    int lineLength = 128;
+                    Component itemName = itemstack3.getHoverName();
+                    boolean oneLine = this.font.split(itemName, lineLength).size() == 1;
                     pGuiGraphics.renderFakeItem(itemstack3, l, j1);
                     pGuiGraphics.renderItemDecorations(this.font, itemstack3, l, j1);
-                    pGuiGraphics.drawString(this.font, itemstack3.getHoverName(), l + 16 + 8, j1 + 5, 16777215, true);
+
+                    pGuiGraphics.drawWordWrap(this.font, itemName, l + 16 + 4, j1 + (oneLine ? 5 : 0), lineLength, 16777215);
+//                    pGuiGraphics.drawString(this.font, itemName, l + 16 + 4, j1 + 5, 16777215, true);
                     pGuiGraphics.pose().popPose();
-                    k += 20;
+                    k += TRADE_BUTTON_HEIGHT;
                     ++i1;
                 } else {
                     ++i1;

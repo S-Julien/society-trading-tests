@@ -38,12 +38,15 @@ public class ShopMenu extends AbstractContainerMenu {
     private boolean canRestock;
 
     public ShopMenu(int pContainerId, Inventory pPlayerInventory) {
-        this(pContainerId, pPlayerInventory, new ClientSideMerchant(pPlayerInventory.player));
+        this(pContainerId, pPlayerInventory, new ClientSideMerchant(pPlayerInventory.player), null);
+    }
+    public ShopMenu(int pContainerId, Inventory pPlayerInventory, String shopID) {
+        this(pContainerId, pPlayerInventory, new ClientSideMerchant(pPlayerInventory.player), shopID);
     }
 
-    public ShopMenu(int pContainerId, Inventory pPlayerInventory, Merchant pTrader) {
+    public ShopMenu(int pContainerId, Inventory pPlayerInventory, Merchant pTrader, String shopID ) {
         super(ModElements.Menus.SHOP_MENU.get(), pContainerId);
-        DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:blacksmith"));
+        DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + shopID));
         this.shop = shop.get();
         this.trader = pTrader;
         this.tradeContainer = new MerchantContainer(pTrader);
@@ -51,12 +54,12 @@ public class ShopMenu extends AbstractContainerMenu {
 
         for(int i = 0; i < 3; ++i) {
             for(int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(pPlayerInventory, j + i * 9 + 9, 97 + j * 18, 114 + i * 18));
+                this.addSlot(new Slot(pPlayerInventory, j + i * 9 + 9, 88 + j * 18, 122 + i * 18));
             }
         }
 
         for(int k = 0; k < 9; ++k) {
-            this.addSlot(new Slot(pPlayerInventory, k, 97 + k * 18, 172));
+            this.addSlot(new Slot(pPlayerInventory, k, 88 + k * 18, 180));
         }
 
     }

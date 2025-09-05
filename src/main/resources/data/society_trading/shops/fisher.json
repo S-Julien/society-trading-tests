@@ -1,6 +1,6 @@
 {
-  "shopID": "blacksmith",
-  "name": "shop.splendid_trades.blacksmith",
+  "shopID": "fisher",
+  "name": "shop.splendid_trades.fisher",
   "trades": [
     {
       "offer": {
