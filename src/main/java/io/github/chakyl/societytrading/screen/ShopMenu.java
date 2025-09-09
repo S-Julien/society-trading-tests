@@ -1,22 +1,32 @@
 package io.github.chakyl.societytrading.screen;
 
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
+import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.registry.ModElements;
+import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
+import io.github.chakyl.societytrading.util.ItemHash;
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenCustomHashMap;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.npc.ClientSideMerchant;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.*;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ResultContainer;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.trading.Merchant;
-import net.minecraft.world.item.trading.MerchantOffers;
+import net.minecraft.world.level.Level;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
 
 public class ShopMenu extends AbstractContainerMenu {
     protected static final int PAYMENT1_SLOT = 0;
@@ -30,136 +40,214 @@ public class ShopMenu extends AbstractContainerMenu {
     private static final int SELLSLOT2_X = 162;
     private static final int BUYSLOT_X = 220;
     private static final int ROW_Y = 37;
-    private final Shop shop;
-    private final Merchant trader;
-    private final MerchantContainer tradeContainer;
-    private int merchantLevel;
-    private boolean showProgressBar;
-    private boolean canRestock;
+    private final Level level;
+    private final int containerId;
+    private final Player player;
+    private Shop shop;
+    private final ResultContainer result = new ResultContainer();
+    private final Slot resultSlot;
+    private final Container playerInventory;
+    private ShopOffer selectedTrade;
+    private final ShopOffers trades;
+    private int quickSlotIteration = 0;
 
     public ShopMenu(int pContainerId, Inventory pPlayerInventory) {
-        this(pContainerId, pPlayerInventory, new ClientSideMerchant(pPlayerInventory.player), null);
+        this(pContainerId, pPlayerInventory, null);
     }
+
     public ShopMenu(int pContainerId, Inventory pPlayerInventory, String shopID) {
-        this(pContainerId, pPlayerInventory, new ClientSideMerchant(pPlayerInventory.player), shopID);
-    }
-
-    public ShopMenu(int pContainerId, Inventory pPlayerInventory, Merchant pTrader, String shopID ) {
         super(ModElements.Menus.SHOP_MENU.get(), pContainerId);
-        DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + shopID));
-        this.shop = shop.get();
-        this.trader = pTrader;
-        this.tradeContainer = new MerchantContainer(pTrader);
-        this.addSlot(new ShopResultSlot(pPlayerInventory.player, pTrader, this.tradeContainer, 2, 269, 118));
-
-        for(int i = 0; i < 3; ++i) {
-            for(int j = 0; j < 9; ++j) {
+        if (shopID != null) {
+            DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + shopID));
+            this.shop = shop.get();
+            this.trades = this.shop.trades();
+        } else {
+            this.shop = null;
+            this.trades = null;
+        }
+        this.player = pPlayerInventory.player;
+        this.level = pPlayerInventory.player.level();
+        this.playerInventory = pPlayerInventory;
+        this.containerId = pContainerId;
+        this.resultSlot = this.addSlot(new ShopResultSlot(this.result, 0, 260, 126));
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 9; ++j) {
                 this.addSlot(new Slot(pPlayerInventory, j + i * 9 + 9, 88 + j * 18, 122 + i * 18));
             }
         }
 
-        for(int k = 0; k < 9; ++k) {
+        for (int k = 0; k < 9; ++k) {
             this.addSlot(new Slot(pPlayerInventory, k, 88 + k * 18, 180));
         }
-
+        this.broadcastChanges();
     }
 
-    /**
-     * Callback for when the crafting matrix is changed.
-     */
-    public void slotsChanged(Container pInventory) {
-        this.tradeContainer.updateSellItem();
-        super.slotsChanged(pInventory);
+    @Override
+    public void broadcastChanges() {
+        this.updateResultSlot();
+        super.broadcastChanges();
     }
 
-    public void setSelectionHint(int pCurrentRecipeIndex) {
-        this.tradeContainer.setSelectionHint(pCurrentRecipeIndex);
+    @Override
+    public boolean clickMenuButton(Player player, int button) {
+        if (button >= 0 && button < this.trades.size()) {
+            this.selectedTrade = trades.get(button);
+            this.quickSlotIteration = 0;
+            this.updateResultSlot();
+            return true;
+        }
+        return false;
+    }
+
+    private void updateResultSlot() {
+        if (!this.level.isClientSide()) {
+            int selectedRecipeIndex = this.trades.indexOf(this.selectedTrade);
+            if (selectedRecipeIndex >= 0 && selectedRecipeIndex < this.trades.size()) {
+                if (this.canTradeFor(this.selectedTrade)) {
+                    ItemStack result = this.selectedTrade.getResult();
+                    this.resultSlot.set(result.copy());
+                } else {
+                    this.resultSlot.set(ItemStack.EMPTY);
+                }
+            } else {
+                this.resultSlot.set(ItemStack.EMPTY);
+            }
+            super.broadcastChanges();
+        }
+    }
+
+    private boolean canTradeFor(ShopOffer selectedTrade) {
+        return this.getConsumedMaterialItems(selectedTrade) != null;
+    }
+
+    public void trade(ShopOffer offer, Inventory pPlayerInventory) {
+        Map<Item, Integer> items = this.getConsumedMaterialItems(offer);
+        if (items != null) {
+            this.removeItems(items, pPlayerInventory);
+        }
+    }
+
+    private void removeItems(Map<Item, Integer> items, Inventory pPlayerInventory) {
+        List<Pair<Container, Runnable>> transactions = new ArrayList<>();
+        IntStream.range(0, pPlayerInventory.getContainerSize()).forEach(slot -> {
+            ItemStack stack = pPlayerInventory.getItem(slot);
+            if (stack.isEmpty() || stack.isDamaged())
+                return;
+            Item item = stack.getItem();
+            Integer count = items.get(item);
+            if (count != null) {
+                if (stack.getCount() < count) {
+                    count -= stack.getCount();
+                    items.put(item, count);
+                    transactions.add(Pair.of(pPlayerInventory, () -> stack.setCount(0)));
+                } else {
+                    Integer finalCount = count;
+                    transactions.add(Pair.of(pPlayerInventory, () -> stack.shrink(finalCount)));
+                    items.remove(item);
+                }
+            }
+        });
+        if (items.isEmpty()) {
+            transactions.forEach(pair -> {
+                pair.right().run();
+                pair.left().setChanged();
+            });
+        }
+    }
+
+
+    public static Map<Item, Integer> countItems(Container pPlayerInventory) {
+        Map<Item, Integer> map = new Object2IntOpenCustomHashMap<>(ItemHash.INSTANCE);
+        IntStream.range(0, pPlayerInventory.getContainerSize()).forEach(slot -> {
+            ItemStack stack = pPlayerInventory.getItem(slot);
+            if (stack.isEmpty()) return;
+            map.merge(stack.getItem(), stack.getCount(), Integer::sum);
+        });
+
+        return map;
+    }
+
+    private Map<Item, Integer> addConsumedMaterial(Map<Item, Integer> materials, Map<Item, Integer> counts, ItemStack stack) {
+        int remaining = stack.getCount();
+        Item item = stack.getItem();
+        int count = counts.getOrDefault(item, 0);
+        count -= materials.getOrDefault(item, 0);
+        if (count > 0) {
+            if (count >= remaining) {
+                materials.merge(item, remaining, Integer::sum);
+                remaining = 0;
+            } else {
+                materials.merge(item, count, Integer::sum);
+                remaining -= count;
+            }
+        }
+        if (remaining > 0) {
+            return null;
+        }
+        return materials;
+    }
+
+    @Nullable
+    private Map<Item, Integer> getConsumedMaterialItems(ShopOffer offer) {
+        Map<Item, Integer> counts = countItems(this.playerInventory);
+        Map<Item, Integer> materials = new HashMap<>();
+        materials = addConsumedMaterial(materials, counts, offer.getCostA());
+        if (materials == null) return null;
+        return addConsumedMaterial(materials, counts, offer.getCostB());
     }
 
     /**
      * Determines whether supplied player can use this container
      */
+    @Override
     public boolean stillValid(Player pPlayer) {
-        return this.trader.getTradingPlayer() == pPlayer;
+        return true;
     }
 
-    public int getTraderXp() {
-        return this.trader.getVillagerXp();
-    }
-
-    public int getFutureTraderXp() {
-        return this.tradeContainer.getFutureXp();
-    }
-
-
-    public int getTraderLevel() {
-        return this.merchantLevel;
-    }
-
-
-    public boolean canRestock() {
-        return this.canRestock;
-    }
 
     /**
      * Called to determine if the current slot is valid for the stack merging (double-click) code. The stack passed in is
      * null for the initial slot that was double-clicked.
      */
     public boolean canTakeItemForPickAll(ItemStack pStack, Slot pSlot) {
-        return false;
+        return pSlot != this.resultSlot && super.canTakeItemForPickAll(pStack, pSlot);
     }
 
-    /**
-     * Handle when the stack in slot {@code index} is shift-clicked. Normally this moves the stack between the player
-     * inventory and the other inventory(s).
-     */
+    @Override
     public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
-        ItemStack itemstack = ItemStack.EMPTY;
+        ItemStack stack = ItemStack.EMPTY;
         Slot slot = this.slots.get(pIndex);
-        if (slot != null && slot.hasItem()) {
-            ItemStack itemstack1 = slot.getItem();
-            itemstack = itemstack1.copy();
-            if (pIndex == 2) {
-                if (!this.moveItemStackTo(itemstack1, 3, 39, true)) {
-                    return ItemStack.EMPTY;
-                }
-
-                slot.onQuickCraft(itemstack1, itemstack);
-                this.playTradeSound();
-            } else if (pIndex != 0 && pIndex != 1) {
-                if (pIndex >= 3 && pIndex < 30) {
-                    if (!this.moveItemStackTo(itemstack1, 30, 39, false)) {
+        if (this.quickSlotIteration < slot.getItem().getMaxStackSize()) {
+            this.quickSlotIteration++;
+            if (slot.hasItem()) {
+                ItemStack slotStack = slot.getItem();
+                stack = slotStack.copy();
+                if (pIndex == this.resultSlot.index) {
+                    Item item = slotStack.getItem();
+                    item.onCraftedBy(slotStack, pPlayer.level(), pPlayer);
+                    if (!this.moveItemStackTo(slotStack, 2, this.slots.size(), true)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (pIndex >= 30 && pIndex < 39 && !this.moveItemStackTo(itemstack1, 3, 30, false)) {
+                    slot.onQuickCraft(slotStack, stack);
+                }
+
+                if (slotStack.isEmpty()) {
+                    slot.setByPlayer(ItemStack.EMPTY);
+                }
+
+                slot.setChanged();
+
+                if (slotStack.getCount() == stack.getCount()) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.moveItemStackTo(itemstack1, 3, 39, false)) {
-                return ItemStack.EMPTY;
-            }
 
-            if (itemstack1.isEmpty()) {
-                slot.setByPlayer(ItemStack.EMPTY);
-            } else {
-                slot.setChanged();
+                slot.onTake(pPlayer, slotStack);
+                this.broadcastChanges();
             }
-
-            if (itemstack1.getCount() == itemstack.getCount()) {
-                return ItemStack.EMPTY;
-            }
-
-            slot.onTake(pPlayer, itemstack1);
+        } else {
+            this.quickSlotIteration = 0;
         }
-
-        return itemstack;
-    }
-
-    private void playTradeSound() {
-        if (!this.trader.isClientSide()) {
-            Entity entity = (Entity)this.trader;
-            entity.level().playLocalSound(entity.getX(), entity.getY(), entity.getZ(), this.trader.getNotifyTradeSound(), SoundSource.NEUTRAL, 1.0F, 1.0F, false);
-        }
-
+        return stack;
     }
 
     /**
@@ -167,91 +255,43 @@ public class ShopMenu extends AbstractContainerMenu {
      */
     public void removed(Player pPlayer) {
         super.removed(pPlayer);
-        this.trader.setTradingPlayer((Player)null);
-        if (!this.trader.isClientSide()) {
-            if (!pPlayer.isAlive() || pPlayer instanceof ServerPlayer && ((ServerPlayer)pPlayer).hasDisconnected()) {
-                ItemStack itemstack = this.tradeContainer.removeItemNoUpdate(0);
-                if (!itemstack.isEmpty()) {
-                    pPlayer.drop(itemstack, false);
-                }
-
-                itemstack = this.tradeContainer.removeItemNoUpdate(1);
-                if (!itemstack.isEmpty()) {
-                    pPlayer.drop(itemstack, false);
-                }
-            } else if (pPlayer instanceof ServerPlayer) {
-                pPlayer.getInventory().placeItemBackInInventory(this.tradeContainer.removeItemNoUpdate(0));
-                pPlayer.getInventory().placeItemBackInInventory(this.tradeContainer.removeItemNoUpdate(1));
-            }
-
-        }
-    }
-
-    public void tryMoveItems(int pSelectedMerchantRecipe) {
-        if (pSelectedMerchantRecipe >= 0 && this.getOffers().size() > pSelectedMerchantRecipe) {
-            ItemStack itemstack = this.tradeContainer.getItem(0);
-            if (!itemstack.isEmpty()) {
-                if (!this.moveItemStackTo(itemstack, 3, 39, true)) {
-                    return;
-                }
-
-                this.tradeContainer.setItem(0, itemstack);
-            }
-
-            ItemStack itemstack1 = this.tradeContainer.getItem(1);
-            if (!itemstack1.isEmpty()) {
-                if (!this.moveItemStackTo(itemstack1, 3, 39, true)) {
-                    return;
-                }
-
-                this.tradeContainer.setItem(1, itemstack1);
-            }
-
-            if (this.tradeContainer.getItem(0).isEmpty() && this.tradeContainer.getItem(1).isEmpty()) {
-                ItemStack itemstack2 = this.getOffers().get(pSelectedMerchantRecipe).getCostA();
-                this.moveFromInventoryToPaymentSlot(0, itemstack2);
-                ItemStack itemstack3 = this.getOffers().get(pSelectedMerchantRecipe).getCostB();
-                this.moveFromInventoryToPaymentSlot(1, itemstack3);
-            }
-
-        }
-    }
-
-    private void moveFromInventoryToPaymentSlot(int pPaymentSlotIndex, ItemStack pPaymentSlot) {
-        if (!pPaymentSlot.isEmpty()) {
-            for(int i = 3; i < 39; ++i) {
-                ItemStack itemstack = this.slots.get(i).getItem();
-                if (!itemstack.isEmpty() && ItemStack.isSameItemSameTags(pPaymentSlot, itemstack)) {
-                    ItemStack itemstack1 = this.tradeContainer.getItem(pPaymentSlotIndex);
-                    int j = itemstack1.isEmpty() ? 0 : itemstack1.getCount();
-                    int k = Math.min(pPaymentSlot.getMaxStackSize() - j, itemstack.getCount());
-                    ItemStack itemstack2 = itemstack.copy();
-                    int l = j + k;
-                    itemstack.shrink(k);
-                    itemstack2.setCount(l);
-                    this.tradeContainer.setItem(pPaymentSlotIndex, itemstack2);
-                    if (l >= pPaymentSlot.getMaxStackSize()) {
-                        break;
-                    }
-                }
-            }
-        }
-
     }
 
     /**
      * {@link net.minecraft.client.multiplayer.ClientPacketListener} uses this to set offers for the client side
      * MerchantContainer.
      */
-    public void setOffers(MerchantOffers pOffers) {
-        this.trader.overrideOffers(pOffers);
+    public void setShop(Shop shop) {
+        this.shop = shop;
     }
 
     public ShopOffers getOffers() {
+        if (this.shop == null) return new ShopOffers();
         return this.shop.trades();
     }
 
-    public boolean showProgressBar() {
-        return this.showProgressBar;
+    private class ShopResultSlot extends Slot {
+        public ShopResultSlot(Container container, int slot, int x, int y) {
+            super(container, slot, x, y);
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return false;
+        }
+
+        @Override
+        public void onTake(Player player, ItemStack stack) {
+            stack.onCraftedBy(player.level(), player, stack.getCount());
+            ShopMenu.this.onTrade(player);
+            super.onTake(player, stack);
+        }
+    }
+
+    private void onTrade(Player player) {
+        if (this.selectedTrade != null && this.canTradeFor(this.selectedTrade)) {
+            this.trade(this.selectedTrade, player.getInventory());
+            ShopMenu.this.updateResultSlot();
+        }
     }
 }

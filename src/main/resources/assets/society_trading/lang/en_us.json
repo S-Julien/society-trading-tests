@@ -1,6 +1,8 @@
 {
   "block.society_trading.shop_block": "Shop",
   "itemGroup.society_trading": "Society Trading",
+
+  "gui.society_trading.shop_selector.title": "Shops",
   "shop.society_trading.blacksmith.name": "Blacksmith",
   "shop.society_trading.builder.name": "Builder"
 }

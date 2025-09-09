@@ -1,8 +1,5 @@
 package io.github.chakyl.societytrading.registry;
 
-import com.google.common.collect.ImmutableSet;
-import com.mojang.serialization.Codec;
-import dev.shadowsoffire.placebo.block_entity.TickingBlockEntityType;
 import dev.shadowsoffire.placebo.menu.MenuUtil;
 import dev.shadowsoffire.placebo.registry.DeferredHelper;
 import io.github.chakyl.societytrading.SocietyTrading;
@@ -13,21 +10,12 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraftforge.common.ForgeSpawnEggItem;
-import net.minecraftforge.common.loot.IGlobalLootModifier;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public class ModElements {
@@ -39,6 +27,7 @@ public class ModElements {
     public static class Blocks {
 
         public static final RegistryObject<Block> SHOP_BLOCK = R.block("shop_block", () -> new ShopBlock(defaultBehavior.strength(4, 3000).noOcclusion()));
+
         private static void bootstrap() {
         }
     }
@@ -56,9 +45,8 @@ public class ModElements {
         }
     }
 
-
     public static class Menus {
-        public static final RegistryObject<MenuType<ShopMenu>> SHOP_MENU = R.menu("shop_menu", () -> MenuUtil.type(ShopMenu::new));
+        public static final RegistryObject<MenuType<ShopMenu>> SHOP_MENU = R.menu("shop_menu", () -> MenuUtil.bufType((windowId, playerInventory, data) -> new ShopMenu(windowId, playerInventory, data.readUtf())));
         public static final RegistryObject<MenuType<SelectorMenu>> SELECTOR_MENU = R.menu("selector_menu", () -> MenuUtil.type(SelectorMenu::new));
 
         private static void bootstrap() {

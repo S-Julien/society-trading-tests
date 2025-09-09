@@ -2,6 +2,8 @@ package io.github.chakyl.societytrading.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.chakyl.societytrading.SocietyTrading;
+import io.github.chakyl.societytrading.network.PacketHandler;
+import io.github.chakyl.societytrading.network.ServerBoundTradeButtonClickPacket;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
 import net.minecraft.client.gui.GuiGraphics;
@@ -9,19 +11,18 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ServerboundSelectTradePacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
-    /** The GUI texture for the villager merchant GUI. */
+    /**
+     * The GUI texture for the villager merchant GUI.
+     */
     private static final ResourceLocation GUI_LOCATION = new ResourceLocation(SocietyTrading.MODID, "textures/gui/shop.png");
     private static final int TEXTURE_WIDTH = 512;
     private static final int TEXTURE_HEIGHT = 256;
@@ -38,7 +39,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     private static final int TRADE_BUTTON_WIDTH = 185;
     private static final int SCROLLER_HEIGHT = 27;
     private static final int SCROLLER_WIDTH = 6;
-    private static final int SCROLL_BAR_HEIGHT = 88;
+    private static final int SCROLL_BAR_HEIGHT = TRADE_BUTTON_HEIGHT * NUMBER_OF_OFFER_BUTTONS;
     private static final int SCROLL_BAR_TOP_POS_Y = 18;
     private static final int SCROLL_BAR_START_X = 274;
     private static final Component TRADES_LABEL = Component.translatable("merchant.trades");
@@ -54,9 +55,8 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     }
 
     private void postButtonClick() {
-        this.menu.setSelectionHint(this.shopItem);
-        this.menu.tryMoveItems(this.shopItem);
-        this.minecraft.getConnection().send(new ServerboundSelectTradePacket(this.shopItem));
+//        this.menu.setSelectionHint(this.shopItem);
+        PacketHandler.sendToServer(new ServerBoundTradeButtonClickPacket((byte) this.shopItem));
     }
 
     protected void init() {
@@ -65,10 +65,11 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         int j = (this.height - this.imageHeight) / 2;
         int k = j + 18;
 
-        for(int l = 0; l < NUMBER_OF_OFFER_BUTTONS; ++l) {
-            this.tradeOfferButtons[l] = this.addRenderableWidget(new ShopScreen.TradeOfferButton(i + 88, k, l, (p_99174_) -> {
-                if (p_99174_ instanceof ShopScreen.TradeOfferButton) {
-                    this.shopItem = ((ShopScreen.TradeOfferButton)p_99174_).getIndex() + this.scrollOff;
+//        PacketHandler.sendToServer(new ServerBoundSyncTradesPacket());
+        for (int l = 0; l < NUMBER_OF_OFFER_BUTTONS; ++l) {
+            this.tradeOfferButtons[l] = this.addRenderableWidget(new ShopScreen.TradeOfferButton(i + 88, k, l, (button) -> {
+                if (button instanceof ShopScreen.TradeOfferButton) {
+                    this.shopItem = ((ShopScreen.TradeOfferButton) button).getIndex() + this.scrollOff;
                     this.postButtonClick();
                 }
 
@@ -121,11 +122,13 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         }
 
     }
+
     /**
      * Renders the graphical user interface (GUI) element.
+     *
      * @param pGuiGraphics the GuiGraphics object used for rendering.
-     * @param pMouseX the x-coordinate of the mouse cursor.
-     * @param pMouseY the y-coordinate of the mouse cursor.
+     * @param pMouseX      the x-coordinate of the mouse cursor.
+     * @param pMouseY      the y-coordinate of the mouse cursor.
      * @param pPartialTick the partial tick time.
      */
     public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
@@ -140,7 +143,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
             this.renderScroller(pGuiGraphics, i, j, shopoffers);
             int i1 = 0;
 
-            for(ShopOffer shopoffer : shopoffers) {
+            for (ShopOffer shopoffer : shopoffers) {
                 if (!this.canScroll(shopoffers.size()) || i1 >= this.scrollOff && i1 < NUMBER_OF_OFFER_BUTTONS + this.scrollOff) {
                     ItemStack itemstack = shopoffer.getBaseCostA();
                     ItemStack itemstack1 = shopoffer.getCostA();
@@ -151,8 +154,8 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                     int j1 = k + 16;
                     this.renderAndDecorateCostA(pGuiGraphics, itemstack1, itemstack, l + TRADE_BUTTON_WIDTH - 21, j1);
                     if (!itemstack2.isEmpty()) {
-                        pGuiGraphics.renderFakeItem(itemstack2, i + TRADE_BUTTON_WIDTH + 54, j1);
-                        pGuiGraphics.renderItemDecorations(this.font, itemstack2, i + TRADE_BUTTON_WIDTH + 54, j1);
+                        pGuiGraphics.renderFakeItem(itemstack2, i + TRADE_BUTTON_WIDTH + 52, j1);
+                        pGuiGraphics.renderItemDecorations(this.font, itemstack2, i + TRADE_BUTTON_WIDTH + 52, j1);
                     }
 
                     //result
@@ -162,8 +165,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                     pGuiGraphics.renderFakeItem(itemstack3, l, j1);
                     pGuiGraphics.renderItemDecorations(this.font, itemstack3, l, j1);
 
-                    pGuiGraphics.drawWordWrap(this.font, itemName, l + 16 + 4, j1 + (oneLine ? 5 : 0), lineLength, 16777215);
-//                    pGuiGraphics.drawString(this.font, itemName, l + 16 + 4, j1 + 5, 16777215, true);
+                    pGuiGraphics.drawWordWrap(this.font, itemName, l + 16 + 4, j1 + (oneLine ? 4 : 0), lineLength, 16777215);
                     pGuiGraphics.pose().popPose();
                     k += TRADE_BUTTON_HEIGHT;
                     ++i1;
@@ -172,7 +174,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                 }
             }
 
-            for(ShopScreen.TradeOfferButton ShopScreen$tradeofferbutton : this.tradeOfferButtons) {
+            for (ShopScreen.TradeOfferButton ShopScreen$tradeofferbutton : this.tradeOfferButtons) {
                 if (ShopScreen$tradeofferbutton.isHoveredOrFocused()) {
                     ShopScreen$tradeofferbutton.renderToolTip(pGuiGraphics, pMouseX, pMouseY);
                 }
@@ -186,16 +188,6 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         this.renderTooltip(pGuiGraphics, pMouseX, pMouseY);
     }
 
-    private void renderButtonArrows(GuiGraphics pGuiGraphics, ShopOffer pShopOffers, int pPosX, int pPosY) {
-        RenderSystem.enableBlend();
-        if (pShopOffers.isOutOfStock()) {
-            pGuiGraphics.blit(GUI_LOCATION, pPosX + NUMBER_OF_OFFER_BUTTONS + 35 + 20, pPosY + 3, 0, 25.0F, 171.0F, 10, 9, TEXTURE_WIDTH, TEXTURE_HEIGHT);
-        } else {
-            pGuiGraphics.blit(GUI_LOCATION, pPosX + NUMBER_OF_OFFER_BUTTONS + 35 + 20, pPosY + 3, 0, 15.0F, 171.0F, 10, 9, TEXTURE_WIDTH, TEXTURE_HEIGHT);
-        }
-
-    }
-
     private void renderAndDecorateCostA(GuiGraphics pGuiGraphics, ItemStack pRealCost, ItemStack pBaseCost, int pX, int pY) {
         pGuiGraphics.renderFakeItem(pRealCost, pX, pY);
         if (pBaseCost.getCount() == pRealCost.getCount()) {
@@ -206,7 +198,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
             pGuiGraphics.pose().pushPose();
             pGuiGraphics.pose().translate(0.0F, 0.0F, 200.0F);
             String count = pRealCost.getCount() == 1 ? "1" : String.valueOf(pRealCost.getCount());
-            font.drawInBatch(count, (float) (pX + 14) + 19 - 2 - font.width(count), (float)pY + 6 + 3, 0xFFFFFF, true, pGuiGraphics.pose().last().pose(), pGuiGraphics.bufferSource(), net.minecraft.client.gui.Font.DisplayMode.NORMAL, 0, 15728880, false);
+            font.drawInBatch(count, (float) (pX + 14) + 19 - 2 - font.width(count), (float) pY + 6 + 3, 0xFFFFFF, true, pGuiGraphics.pose().last().pose(), pGuiGraphics.bufferSource(), net.minecraft.client.gui.Font.DisplayMode.NORMAL, 0, 15728880, false);
             pGuiGraphics.pose().popPose();
             pGuiGraphics.pose().pushPose();
             pGuiGraphics.pose().translate(0.0F, 0.0F, 300.0F);
@@ -223,16 +215,17 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     /**
      * Called when the mouse wheel is scrolled within the GUI element.
      * <p>
-     * @return {@code true} if the event is consumed, {@code false} otherwise.
+     *
      * @param pMouseX the X coordinate of the mouse.
      * @param pMouseY the Y coordinate of the mouse.
-     * @param pDelta the scrolling delta.
+     * @param pDelta  the scrolling delta.
+     * @return {@code true} if the event is consumed, {@code false} otherwise.
      */
     public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
         int i = this.menu.getOffers().size();
         if (this.canScroll(i)) {
             int j = i - NUMBER_OF_OFFER_BUTTONS;
-            this.scrollOff = Mth.clamp((int)((double)this.scrollOff - pDelta), 0, j);
+            this.scrollOff = Mth.clamp((int) ((double) this.scrollOff - pDelta), 0, j);
         }
 
         return true;
@@ -241,12 +234,13 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     /**
      * Called when the mouse is dragged within the GUI element.
      * <p>
-     * @return {@code true} if the event is consumed, {@code false} otherwise.
+     *
      * @param pMouseX the X coordinate of the mouse.
      * @param pMouseY the Y coordinate of the mouse.
      * @param pButton the button that is being dragged.
-     * @param pDragX the X distance of the drag.
-     * @param pDragY the Y distance of the drag.
+     * @param pDragX  the X distance of the drag.
+     * @param pDragY  the Y distance of the drag.
+     * @return {@code true} if the event is consumed, {@code false} otherwise.
      */
     public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
         int i = this.menu.getOffers().size();
@@ -254,9 +248,9 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
             int j = this.topPos + SCROLL_BAR_TOP_POS_Y;
             int k = j + SCROLL_BAR_HEIGHT;
             int l = i - NUMBER_OF_OFFER_BUTTONS;
-            float f = ((float)pMouseY - (float)j - 13.5F) / ((float)(k - j) - 27.0F);
-            f = f * (float)l + 0.5F;
-            this.scrollOff = Mth.clamp((int)f, 0, l);
+            float f = ((float) pMouseY - (float) j - 13.5F) / ((float) (k - j) - 27.0F);
+            f = f * (float) l + 0.5F;
+            this.scrollOff = Mth.clamp((int) f, 0, l);
             return true;
         } else {
             return super.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
@@ -266,16 +260,17 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     /**
      * Called when a mouse button is clicked within the GUI element.
      * <p>
-     * @return {@code true} if the event is consumed, {@code false} otherwise.
+     *
      * @param pMouseX the X coordinate of the mouse.
      * @param pMouseY the Y coordinate of the mouse.
      * @param pButton the button that was clicked.
+     * @return {@code true} if the event is consumed, {@code false} otherwise.
      */
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         this.isDragging = false;
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        if (this.canScroll(this.menu.getOffers().size()) && pMouseX > (double)(i + SCROLL_BAR_START_X) && pMouseX < (double)(i + SCROLL_BAR_START_X + 6) && pMouseY > (double)(j + SCROLL_BAR_TOP_POS_Y) && pMouseY <= (double)(j + SCROLL_BAR_TOP_POS_Y + SCROLL_BAR_HEIGHT + 1)) {
+        if (this.canScroll(this.menu.getOffers().size()) && pMouseX > (double) (i + SCROLL_BAR_START_X) && pMouseX < (double) (i + SCROLL_BAR_START_X + 6) && pMouseY > (double) (j + SCROLL_BAR_TOP_POS_Y) && pMouseY <= (double) (j + SCROLL_BAR_TOP_POS_Y + SCROLL_BAR_HEIGHT + 1)) {
             this.isDragging = true;
         }
 
