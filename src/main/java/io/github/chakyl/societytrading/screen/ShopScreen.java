@@ -1,6 +1,7 @@
 package io.github.chakyl.societytrading.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import dev.ithundxr.createnumismatics.registry.NumismaticsTags;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.network.PacketHandler;
 import io.github.chakyl.societytrading.network.ServerBoundTradeButtonClickPacket;
@@ -18,6 +19,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import static io.github.chakyl.societytrading.util.ShopData.formatPrice;
+
 @OnlyIn(Dist.CLIENT)
 public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     /**
@@ -26,9 +29,6 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     private static final ResourceLocation GUI_LOCATION = new ResourceLocation(SocietyTrading.MODID, "textures/gui/shop.png");
     private static final int TEXTURE_WIDTH = 512;
     private static final int TEXTURE_HEIGHT = 256;
-    private static final int MERCHANT_MENU_PART_X = 99;
-    private static final int PROGRESS_BAR_X = 136;
-    private static final int PROGRESS_BAR_Y = 16;
     private static final int SELL_ITEM_1_X = 5;
     private static final int SELL_ITEM_2_X = 35;
     private static final int BUY_ITEM_X = 68;
@@ -65,7 +65,6 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         int j = (this.height - this.imageHeight) / 2;
         int k = j + 18;
 
-//        PacketHandler.sendToServer(new ServerBoundSyncTradesPacket());
         for (int l = 0; l < NUMBER_OF_OFFER_BUTTONS; ++l) {
             this.tradeOfferButtons[l] = this.addRenderableWidget(new ShopScreen.TradeOfferButton(i + 88, k, l, (button) -> {
                 if (button instanceof ShopScreen.TradeOfferButton) {
@@ -81,29 +80,21 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
 
     protected void renderLabels(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
         int centralX = (5 - this.font.width(TRADES_LABEL) / 2) + 102;
-        pGuiGraphics.drawString(this.font, this.title, (5 - this.font.width(this.title) / 2) + 26, LABEL_Y, 4210752, false);
+        pGuiGraphics.drawString(this.font, this.title, 6, LABEL_Y, 4210752, false);
         pGuiGraphics.drawString(this.font, TRADES_LABEL, centralX, LABEL_Y, 4210752, false);
         pGuiGraphics.drawString(this.font, this.playerInventoryTitle, centralX, 110, 4210752, false);
+        if (SocietyTrading.NUMISMATICS_INSTALLED) {
+            Component priceStr = Component.translatable("gui.society_trading.balance", formatPrice(Integer.valueOf(this.menu.getPlayerBalance()).toString()));
+            pGuiGraphics.drawString(this.font, priceStr, (centralX * 3 ) + font.width(priceStr) - 18, LABEL_Y, 4210752, false);
 
+        }
     }
 
     protected void renderBg(GuiGraphics pGuiGraphics, float pPartialTick, int pMouseX, int pMouseY) {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
         pGuiGraphics.blit(GUI_LOCATION, i, j, 0, 0.0F, 0.0F, this.imageWidth, this.imageHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
-        ShopOffers shopoffers = this.menu.getOffers();
-        if (!shopoffers.isEmpty()) {
-            int k = this.shopItem;
-            if (k < 0 || k >= shopoffers.size()) {
-                return;
-            }
-
-            ShopOffer shopoffer = shopoffers.get(k);
-            if (shopoffer.isOutOfStock()) {
-                pGuiGraphics.blit(GUI_LOCATION, this.leftPos + 83 + 99, this.topPos + 35, 0, 311.0F, 0.0F, 28, 21, TEXTURE_WIDTH, TEXTURE_HEIGHT);
-            }
-        }
-
+        pGuiGraphics.blit(new ResourceLocation(this.menu.getTexture() + ".png"), i + 6, j + 18, 0, 0.0F, 0.0F, 64, 64, 64, 64);
     }
 
     private void renderScroller(GuiGraphics pGuiGraphics, int pPosX, int pPosY, ShopOffers pShopOffers) {
@@ -134,28 +125,36 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         this.renderBackground(pGuiGraphics);
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        ShopOffers shopoffers = this.menu.getOffers();
-        if (!shopoffers.isEmpty()) {
+        ShopOffers shopOffers = this.menu.getOffers();
+        if (!shopOffers.isEmpty()) {
             int i = (this.width - this.imageWidth) / 2;
             int j = (this.height - this.imageHeight) / 2;
             int k = j + 4 + 1;
             int l = i + 86 + NUMBER_OF_OFFER_BUTTONS;
-            this.renderScroller(pGuiGraphics, i, j, shopoffers);
+            this.renderScroller(pGuiGraphics, i, j, shopOffers);
             int i1 = 0;
 
-            for (ShopOffer shopoffer : shopoffers) {
-                if (!this.canScroll(shopoffers.size()) || i1 >= this.scrollOff && i1 < NUMBER_OF_OFFER_BUTTONS + this.scrollOff) {
-                    ItemStack itemstack = shopoffer.getBaseCostA();
-                    ItemStack itemstack1 = shopoffer.getCostA();
-                    ItemStack itemstack2 = shopoffer.getCostB();
-                    ItemStack itemstack3 = shopoffer.getResult();
+            for (ShopOffer shopOffer : shopOffers) {
+                if (!this.canScroll(shopOffers.size()) || i1 >= this.scrollOff && i1 < NUMBER_OF_OFFER_BUTTONS + this.scrollOff) {
+                    ItemStack itemstack1 = shopOffer.getCostA();
+                    ItemStack itemstack2 = shopOffer.getCostB();
+                    ItemStack itemstack3 = shopOffer.getResult();
                     pGuiGraphics.pose().pushPose();
                     pGuiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
                     int j1 = k + 16;
-                    this.renderAndDecorateCostA(pGuiGraphics, itemstack1, itemstack, l + TRADE_BUTTON_WIDTH - 21, j1);
-                    if (!itemstack2.isEmpty()) {
-                        pGuiGraphics.renderFakeItem(itemstack2, i + TRADE_BUTTON_WIDTH + 52, j1);
-                        pGuiGraphics.renderItemDecorations(this.font, itemstack2, i + TRADE_BUTTON_WIDTH + 52, j1);
+                    int numismaticOffset = 0;
+                    if (shopOffer.hasNumismaticsCost()) {
+                        Component priceStr = Component.translatable("gui.society_trading.price", formatPrice(Integer.valueOf(shopOffer.getNumismaticsCost()).toString()));
+                        pGuiGraphics.drawString(this.font, priceStr, l + TRADE_BUTTON_WIDTH - font.width(priceStr) - 4, j1 + 4, 16777215, true);
+                        numismaticOffset = l + TRADE_BUTTON_WIDTH - font.width(priceStr) - 24;
+                    }
+
+                    if (!itemstack1.is(NumismaticsTags.AllItemTags.COINS.tag)) {
+                        this.renderAndDecorateCostA(pGuiGraphics, itemstack1, itemstack1, numismaticOffset > 0 ? numismaticOffset : l + TRADE_BUTTON_WIDTH - 21, j1);
+                    }
+                    if (!itemstack2.isEmpty() && !itemstack2.is(NumismaticsTags.AllItemTags.COINS.tag)) {
+                        pGuiGraphics.renderFakeItem(itemstack2, numismaticOffset > 0 ? numismaticOffset : i + TRADE_BUTTON_WIDTH + 52, j1);
+                        pGuiGraphics.renderItemDecorations(this.font, itemstack2, numismaticOffset > 0 ? numismaticOffset : i + TRADE_BUTTON_WIDTH + 52, j1);
                     }
 
                     //result
@@ -164,7 +163,6 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                     boolean oneLine = this.font.split(itemName, lineLength).size() == 1;
                     pGuiGraphics.renderFakeItem(itemstack3, l, j1);
                     pGuiGraphics.renderItemDecorations(this.font, itemstack3, l, j1);
-
                     pGuiGraphics.drawWordWrap(this.font, itemName, l + 16 + 4, j1 + (oneLine ? 4 : 0), lineLength, 16777215);
                     pGuiGraphics.pose().popPose();
                     k += TRADE_BUTTON_HEIGHT;

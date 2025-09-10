@@ -3,8 +3,8 @@ package io.github.chakyl.societytrading.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
-import io.github.chakyl.societytrading.network.ServerBoundOpenShopMenuPacket;
 import io.github.chakyl.societytrading.network.PacketHandler;
+import io.github.chakyl.societytrading.network.ServerBoundOpenShopMenuPacket;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -15,7 +15,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkHooks;
 
 import java.util.Collection;
 
@@ -51,7 +50,7 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
     private void postButtonClick() {
         Collection<Shop> shops = this.menu.getShops();
         int searchIndex = 0;
-        for(Shop shop: shops) {
+        for (Shop shop : shops) {
             if (searchIndex == this.shopItem) {
                 PacketHandler.sendToServer(new ServerBoundOpenShopMenuPacket(shop.shopID()));
             }
@@ -66,10 +65,10 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
         int j = (this.height - this.imageHeight) / 2;
         int k = j + 18;
 
-        for(int l = 0; l < NUMBER_OF_SHOP_BUTTONS; ++l) {
+        for (int l = 0; l < NUMBER_OF_SHOP_BUTTONS; ++l) {
             this.shopSelectorButtons[l] = this.addRenderableWidget(new SelectorScreen.ShopSelectorButton(i + 8, k, l, (button) -> {
                 if (button instanceof SelectorScreen.ShopSelectorButton) {
-                    this.shopItem = ((SelectorScreen.ShopSelectorButton)button).getIndex() + this.scrollOff;
+                    this.shopItem = ((SelectorScreen.ShopSelectorButton) button).getIndex() + this.scrollOff;
                     this.postButtonClick();
                 }
 
@@ -89,7 +88,7 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
         int j = (this.height - this.imageHeight) / 2;
         pGuiGraphics.blit(GUI_LOCATION, i, j, 0, 0.0F, 0.0F, this.imageWidth, this.imageHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         Collection<Shop> shops = this.menu.getShops();
-        if (!shops.isEmpty()) {
+        if (shops != null && !shops.isEmpty()) {
             int k = this.shopItem;
             if (k < 0 || k >= shops.size()) {
                 return;
@@ -125,7 +124,7 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
         this.renderBackground(pGuiGraphics);
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         Collection<Shop> shops = this.menu.getShops();
-        if (!shops.isEmpty()) {
+        if (shops != null && !shops.isEmpty()) {
             int i = (this.width - this.imageWidth) / 2;
             int j = (this.height - this.imageHeight) / 2;
             int k = j + 4 + 1;
@@ -138,7 +137,7 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
                     pGuiGraphics.pose().pushPose();
                     pGuiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
                     int j1 = k + 14;
-                    pGuiGraphics.drawString(this.font, shop.name(), l , j1 + 5, 16777215, true);
+                    pGuiGraphics.drawString(this.font, shop.name(), l, j1 + 5, 16777215, true);
                     pGuiGraphics.pose().popPose();
                     k += 20;
                     ++i1;

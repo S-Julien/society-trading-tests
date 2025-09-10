@@ -1,0 +1,115 @@
+{
+  "shop_id": "banker",
+  "name": "shop.society_trading.banker",
+  "texture": "minecraft:textures/block/cartography_table_side",
+  "trades": [
+    {
+      "offer": {
+        "item": "minecraft:coal",
+        "count": 1
+      },
+      "request": {
+        "item": "numismatics:sun",
+        "count": 1
+      },
+      "numismatics_cost": 4096
+    },
+    {
+      "offer": {
+        "item": "minecraft:copper_ingot",
+        "count": 1
+      },
+      "request": {
+        "item": "numismatics:crown",
+        "count": 1
+      },
+      "numismatics_cost": 512
+    },
+    {
+      "offer": {
+        "item": "minecraft:iron_ingot",
+        "count": 2
+      },
+      "request": {
+        "item": "numismatics:cog",
+        "count": 1
+      },
+      "numismatics_cost": 64
+    },
+    {
+      "offer": {
+        "item": "minecraft:gold_ingot",
+        "count": 1
+      },
+      "request": {
+        "item": "numismatics:sun",
+        "count": 4
+      },
+      "second_request": {
+        "item": "numismatics:sun",
+        "count": 4
+      },
+      "numismatics_cost": 2048
+    },
+    {
+      "offer": {
+        "item": "minecraft:redstone",
+        "count": 1
+      },
+      "request": {
+        "item": "minecraft:emerald",
+        "count": 1
+      },
+      "second_request": {
+        "item": "numismatics:sun",
+        "count": 32
+      },
+      "numismatics_cost": 131072
+    },
+    {
+      "offer": {
+        "item": "minecraft:redstone",
+        "count": 1
+      },
+      "request": {
+        "item": "minecraft:diamond_block",
+        "count": 32
+      },
+      "second_request": {
+        "item": "numismatics:sun",
+        "count": 32
+      },
+      "numismatics_cost": 1310722
+    },
+    {
+      "offer": {
+        "item": "minecraft:redstone",
+        "count": 1
+      },
+      "request": {
+        "item": "minecraft:emerald",
+        "count": 64
+      },
+      "second_request": {
+        "item": "numismatics:sun",
+        "count": 32
+      },
+      "numismatics_cost": 14310722
+    },
+    {
+      "offer": {
+        "item": "minecraft:waxed_oxidized_cut_copper_stairs",
+        "count": 1
+      },
+      "second_request": {
+        "item": "minecraft:honeycomb",
+        "count": 4
+      },
+      "request": {
+        "item": "numismatics:sun",
+        "count": 64
+      },
+      "numismatics_cost": 2100000000
+    }
+  ]
+}

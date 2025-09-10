@@ -1,6 +1,8 @@
 package io.github.chakyl.societytrading.screen;
 
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
+import dev.ithundxr.createnumismatics.Numismatics;
+import dev.ithundxr.createnumismatics.content.backend.BankAccount;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.data.ShopRegistry;
@@ -8,6 +10,7 @@ import io.github.chakyl.societytrading.registry.ModElements;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
 import io.github.chakyl.societytrading.util.ItemHash;
+import io.github.chakyl.societytrading.util.ShopData;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenCustomHashMap;
 import net.minecraft.resources.ResourceLocation;
@@ -60,7 +63,7 @@ public class ShopMenu extends AbstractContainerMenu {
         if (shopID != null) {
             DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + shopID));
             this.shop = shop.get();
-            this.trades = this.shop.trades();
+            this.trades = ShopData.getFilteredTrades(this.shop.trades(), pPlayerInventory.player);
         } else {
             this.shop = null;
             this.trades = null;
@@ -204,7 +207,6 @@ public class ShopMenu extends AbstractContainerMenu {
         return true;
     }
 
-
     /**
      * Called to determine if the current slot is valid for the stack merging (double-click) code. The stack passed in is
      * null for the initial slot that was double-clicked.
@@ -266,8 +268,21 @@ public class ShopMenu extends AbstractContainerMenu {
     }
 
     public ShopOffers getOffers() {
-        if (this.shop == null) return new ShopOffers();
-        return this.shop.trades();
+        return this.trades;
+    }
+
+    public int getPlayerBalance() {
+        if (!SocietyTrading.NUMISMATICS_INSTALLED || this.level.isClientSide()) return 0;
+        if (this.player == null) return 0;
+        BankAccount account = Numismatics.BANK.getAccount(this.player.getUUID());
+        if (account == null || !account.isAuthorized(this.player.getUUID())) return 0;
+        SocietyTrading.LOGGER.info(account.getBalance());
+        return account.getBalance();
+    }
+
+    public String getTexture() {
+        if (this.shop == null) return null;
+        return this.shop.texture();
     }
 
     private class ShopResultSlot extends Slot {

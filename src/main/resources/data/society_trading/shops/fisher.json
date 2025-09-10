@@ -1,55 +1,94 @@
 {
-  "shopID": "fisher",
-  "name": "shop.splendid_trades.fisher",
+  "shop_id": "fisher",
+  "name": "shop.society_trading.fisher",
+  "texture": "minecraft:textures/block/barrel_side",
   "trades": [
     {
       "offer": {
-        "item": "minecraft:fishing_rod",
+        "item": "minecraft:emerald",
+        "count": 1
+      },
+      "request": {
+        "item": "minecraft:string",
+        "count": 20
+      }
+    },
+    {
+      "offer": {
+        "item": "minecraft:emerald",
+        "count": 1
+      },
+      "request": {
+        "item": "minecraft:coal",
+        "count": 10
+      }
+    },
+    {
+      "offer": {
+        "item": "minecraft:cod_bucket",
         "count": 1
       },
       "request": {
         "item": "minecraft:emerald",
+        "count": 3
+      }
+    },
+    {
+      "offer": {
+        "item": "minecraft:cooked_cod",
+        "count": 6
+      },
+      "request": {
+        "item": "minecraft:emerald",
+        "count": 1
+      },
+      "second_request": {
+        "item": "minecraft:cod",
+        "count": 1
+      }
+    },
+        {
+      "offer": {
+        "item": "minecraft:cooked_salmon",
+        "count": 6
+      },
+      "request": {
+        "item": "minecraft:emerald",
+        "count": 1
+      },
+      "second_request": {
+        "item": "minecraft:salmon",
         "count": 1
       }
     },
     {
       "offer": {
-        "item": "minecraft:copper_ingot",
-        "count": 1
-      },
-      "request": {
-        "item": "minecraft:emerald",
-        "count": 1
-      }
-    },
-    {
-      "offer": {
-        "item": "minecraft:iron_ingot",
+        "item": "minecraft:campfire",
         "count": 2
       },
       "request": {
         "item": "minecraft:emerald",
-        "count": 1
+        "count": 2
       }
     },
     {
       "offer": {
-        "item": "minecraft:gold_ingot",
+        "item": "minecraft:emerald",
         "count": 1
       },
       "request": {
+        "item": "minecraft:tropical_fish",
+        "count": 6
+      }
+    },
+    {
+      "offer": {
         "item": "minecraft:emerald",
+        "count": 1
+      },
+      "request": {
+        "item": "minecraft:pufferfish",
         "count": 4
-      }
-    },
-    {
-      "offer": {
-        "item": "minecraft:redstone",
-        "count": 1
-      },
-      "request": {
-        "item": "minecraft:emerald",
-        "count": 1
       }
     }
   ]

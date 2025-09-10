@@ -7,9 +7,7 @@ import io.github.chakyl.societytrading.SocietyTrading;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.entity.EntityType;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 

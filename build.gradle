@@ -151,9 +151,23 @@ dependencies {
     // The group id is ignored when searching -- in this case, it is "blank"
     // implementation fg.deobf("blank:coolmod-${mc_version}:${coolmod_version}")
 
+    // Hard Deps
     implementation fg.deobf("curse.maven:placebo-283644:6274231")
+    // JEI
     implementation fg.deobf("curse.maven:jei-238222:6075247")
-    implementation fg.deobf("curse.maven:jade-324717:6106101")
+    // KubeJS
+    implementation fg.deobf("curse.maven:kubejs-238086:5853326")
+    implementation fg.deobf("curse.maven:rhino-416294:6186971")
+    implementation fg.deobf("curse.maven:architectury-api-419699:5137938")
+    // Serene Seasons
+    implementation fg.deobf("curse.maven:serene-seasons-291874:6398227")
+    implementation fg.deobf("curse.maven:glitchcore-955399:5787839")
+    // Numismatics Support
+    implementation fg.deobf("curse.maven:create-numismatics-utils-1339392:6956294")
+    implementation fg.deobf("curse.maven:numismatics-889722:6264591")
+    implementation fg.deobf("curse.maven:create-328085:6641603")
+    implementation fg.deobf("curse.maven:curios-309927:6418456")
+
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html

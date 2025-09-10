@@ -3,13 +3,13 @@ package io.github.chakyl.societytrading.screen;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.registry.ModElements;
+import io.github.chakyl.societytrading.util.ShopData;
 import net.minecraft.world.entity.npc.ClientSideMerchant;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.trading.Merchant;
-import net.minecraftforge.network.NetworkHooks;
 
 import java.util.Collection;
 
@@ -22,7 +22,7 @@ public class SelectorMenu extends AbstractContainerMenu {
 
     public SelectorMenu(int pContainerId, Inventory pPlayerInventory, Merchant pTrader) {
         super(ModElements.Menus.SELECTOR_MENU.get(), pContainerId);
-        this.shops = ShopRegistry.INSTANCE.getValues();
+        this.shops = ShopData.getFilteredShops(ShopRegistry.INSTANCE.getValues(), pPlayerInventory.player);
     }
 
     public Collection<Shop> getShops() {

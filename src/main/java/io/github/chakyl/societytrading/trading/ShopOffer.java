@@ -1,86 +1,39 @@
 package io.github.chakyl.societytrading.trading;
-import net.minecraft.nbt.CompoundTag;
+
+import dev.latvian.mods.kubejs.stages.Stages;
+import io.github.chakyl.societytrading.SocietyTrading;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import sereneseasons.api.season.SeasonHelper;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ShopOffer {
-    /** The first input for this offer. */
-    private final ItemStack baseCostA;
-    /** The second input for this offer. */
+    private final ItemStack costA;
     private final ItemStack costB;
-    /** The output of this offer. */
     private final ItemStack result;
-    private int uses;
-    private final int maxUses;
-    private boolean rewardExp = true;
-    private int specialPriceDiff;
-    private int demand;
-    private float priceMultiplier;
-    private int xp = 1;
+    private final String stageRequired;
+    private final List<String> seasonsRequired;
+    private final int numismaticsCost;
 
-    public ShopOffer(CompoundTag pCompoundTag) {
-        this.baseCostA = ItemStack.of(pCompoundTag.getCompound("buy"));
-        this.costB = ItemStack.of(pCompoundTag.getCompound("buyB"));
-        this.result = ItemStack.of(pCompoundTag.getCompound("sell"));
-        this.uses = pCompoundTag.getInt("uses");
-        if (pCompoundTag.contains("maxUses", 99)) {
-            this.maxUses = pCompoundTag.getInt("maxUses");
-        } else {
-            this.maxUses = 4;
-        }
-
-        if (pCompoundTag.contains("rewardExp", 1)) {
-            this.rewardExp = pCompoundTag.getBoolean("rewardExp");
-        }
-
-        if (pCompoundTag.contains("xp", 3)) {
-            this.xp = pCompoundTag.getInt("xp");
-        }
-
-        if (pCompoundTag.contains("priceMultiplier", 5)) {
-            this.priceMultiplier = pCompoundTag.getFloat("priceMultiplier");
-        }
-
-        this.specialPriceDiff = pCompoundTag.getInt("specialPrice");
-        this.demand = pCompoundTag.getInt("demand");
+    public ShopOffer(ItemStack pCostA, ItemStack pResult, String pStageRequired, List<String> pSeasonsRequired, int pNumismaticsCost) {
+        this(pCostA, ItemStack.EMPTY, pResult, pStageRequired, pSeasonsRequired, pNumismaticsCost);
     }
 
-    public ShopOffer(ItemStack pBaseCostA, ItemStack pResult, int pMaxUses, int pXp, float pPriceMultiplier) {
-        this(pBaseCostA, ItemStack.EMPTY, pResult, pMaxUses, pXp, pPriceMultiplier);
-    }
-
-    public ShopOffer(ItemStack pBaseCostA, ItemStack pCostB, ItemStack pResult, int pMaxUses, int pXp, float pPriceMultiplier) {
-        this(pBaseCostA, pCostB, pResult, 0, pMaxUses, pXp, pPriceMultiplier);
-    }
-
-    public ShopOffer(ItemStack pBaseCostA, ItemStack pCostB, ItemStack pResult, int pUses, int pMaxUses, int pXp, float pPriceMultiplier) {
-        this(pBaseCostA, pCostB, pResult, pUses, pMaxUses, pXp, pPriceMultiplier, 0);
-    }
-
-    public ShopOffer(ItemStack pBaseCostA, ItemStack pCostB, ItemStack pResult, int pUses, int pMaxUses, int pXp, float pPriceMultiplier, int pDemand) {
-        this.baseCostA = pBaseCostA;
+    public ShopOffer(ItemStack pCostA, ItemStack pCostB, ItemStack pResult, String pStageRequired, List<String> pSeasonsRequired, int pNumismaticsCost) {
+        this.costA = pCostA;
         this.costB = pCostB;
         this.result = pResult;
-        this.uses = pUses;
-        this.maxUses = pMaxUses;
-        this.xp = pXp;
-        this.priceMultiplier = pPriceMultiplier;
-        this.demand = pDemand;
+        this.stageRequired = pStageRequired;
+        this.seasonsRequired = pSeasonsRequired;
+        this.numismaticsCost = pNumismaticsCost;
     }
 
-    public ItemStack getBaseCostA() {
-        return this.baseCostA;
-    }
 
     public ItemStack getCostA() {
-        if (this.baseCostA.isEmpty()) {
-            return ItemStack.EMPTY;
-        } else {
-            int i = this.baseCostA.getCount();
-            int j = Math.max(0, Mth.floor((float)(i * this.demand) * this.priceMultiplier));
-            return this.baseCostA.copyWithCount(Mth.clamp(i + j + this.specialPriceDiff, 1, this.baseCostA.getMaxStackSize()));
-        }
+        return costA;
     }
 
     public ItemStack getCostB() {
@@ -91,90 +44,34 @@ public class ShopOffer {
         return this.result;
     }
 
-    /**
-     * Calculates the demand with following formula: demand = demand + uses - maxUses - uses
-     */
-    public void updateDemand() {
-        this.demand = this.demand + this.uses - (this.maxUses - this.uses);
+    public String getStageRequired() {
+        return this.stageRequired;
     }
 
-    public ItemStack assemble() {
-        return this.result.copy();
+    public List<String> getSeasonsRequired() {
+        return this.seasonsRequired;
     }
 
-    public int getUses() {
-        return this.uses;
+    public boolean hasNumismaticsCost() {
+        return this.numismaticsCost > 0;
     }
 
-    public void resetUses() {
-        this.uses = 0;
+    public int getNumismaticsCost() {
+        return this.numismaticsCost;
     }
 
-    public int getMaxUses() {
-        return this.maxUses;
-    }
-
-    public void increaseUses() {
-        ++this.uses;
-    }
-
-    public int getDemand() {
-        return this.demand;
-    }
-
-    public void addToSpecialPriceDiff(int pAdd) {
-        this.specialPriceDiff += pAdd;
-    }
-
-    public void resetSpecialPriceDiff() {
-        this.specialPriceDiff = 0;
-    }
-
-    public int getSpecialPriceDiff() {
-        return this.specialPriceDiff;
-    }
-
-    public void setSpecialPriceDiff(int pPrice) {
-        this.specialPriceDiff = pPrice;
-    }
-
-    public float getPriceMultiplier() {
-        return this.priceMultiplier;
-    }
-
-    public int getXp() {
-        return this.xp;
-    }
-
-    public boolean isOutOfStock() {
-        return this.uses >= this.maxUses;
-    }
-
-    public void setToOutOfStock() {
-        this.uses = this.maxUses;
-    }
-
-    public boolean needsRestock() {
-        return this.uses > 0;
-    }
-
-    public boolean shouldRewardExp() {
-        return this.rewardExp;
-    }
-
-    public CompoundTag createTag() {
-        CompoundTag compoundtag = new CompoundTag();
-        compoundtag.put("buy", this.baseCostA.save(new CompoundTag()));
-        compoundtag.put("sell", this.result.save(new CompoundTag()));
-        compoundtag.put("buyB", this.costB.save(new CompoundTag()));
-        compoundtag.putInt("uses", this.uses);
-        compoundtag.putInt("maxUses", this.maxUses);
-        compoundtag.putBoolean("rewardExp", this.rewardExp);
-        compoundtag.putInt("xp", this.xp);
-        compoundtag.putFloat("priceMultiplier", this.priceMultiplier);
-        compoundtag.putInt("specialPrice", this.specialPriceDiff);
-        compoundtag.putInt("demand", this.demand);
-        return compoundtag;
+    public boolean playerCanSee(Player player) {
+        if (SocietyTrading.KUBEJS_INSTALLED) {
+            if (!this.stageRequired.isEmpty() && !Stages.get(player).has(this.stageRequired)) {
+                return false;
+            }
+        }
+        if (SocietyTrading.SERENE_SEASONS_INSTALLED) {
+            if (!this.seasonsRequired.isEmpty() && !this.seasonsRequired.contains(SeasonHelper.getSeasonState(player.level()).getSubSeason().getSerializedName())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public boolean satisfiedBy(ItemStack pPlayerOfferA, ItemStack pPlayerOfferB) {
