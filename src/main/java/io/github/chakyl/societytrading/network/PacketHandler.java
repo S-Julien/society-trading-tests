@@ -3,6 +3,7 @@ package io.github.chakyl.societytrading.network;
 import io.github.chakyl.societytrading.SocietyTrading;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
@@ -32,11 +33,26 @@ public class PacketHandler {
                 .consumerMainThread(ServerBoundOpenShopMenuPacket::handle)
                 .add();
 
+        INSTANCE.messageBuilder(ServerBoundTriggerBalanceSyncPacket.class, 2, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ServerBoundTriggerBalanceSyncPacket::encode)
+                .decoder(ServerBoundTriggerBalanceSyncPacket::new)
+                .consumerMainThread(ServerBoundTriggerBalanceSyncPacket::handle)
+                .add();
+
+        INSTANCE.messageBuilder(ClientBoundBalancePacket.class, 3, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ClientBoundBalancePacket::encode)
+                .decoder(ClientBoundBalancePacket::new)
+                .consumerMainThread(ClientBoundBalancePacket::handle)
+                .add();
+
     }
 
     public static <MSG> void sendToServer(MSG message) {
         INSTANCE.send(PacketDistributor.SERVER.noArg(), message);
     }
 
+    public static <MSG> void sendToPlayer(MSG message, ServerPlayer player) {
+        INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
+    }
 
 }

@@ -5,8 +5,10 @@ import dev.ithundxr.createnumismatics.registry.NumismaticsTags;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.network.PacketHandler;
 import io.github.chakyl.societytrading.network.ServerBoundTradeButtonClickPacket;
+import io.github.chakyl.societytrading.network.ServerBoundTriggerBalanceSyncPacket;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -65,6 +67,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         int j = (this.height - this.imageHeight) / 2;
         int k = j + 18;
 
+        PacketHandler.sendToServer(new ServerBoundTriggerBalanceSyncPacket());
         for (int l = 0; l < NUMBER_OF_OFFER_BUTTONS; ++l) {
             this.tradeOfferButtons[l] = this.addRenderableWidget(new ShopScreen.TradeOfferButton(i + 88, k, l, (button) -> {
                 if (button instanceof ShopScreen.TradeOfferButton) {
@@ -84,8 +87,8 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         pGuiGraphics.drawString(this.font, TRADES_LABEL, centralX, LABEL_Y, 4210752, false);
         pGuiGraphics.drawString(this.font, this.playerInventoryTitle, centralX, 110, 4210752, false);
         if (SocietyTrading.NUMISMATICS_INSTALLED) {
-            Component priceStr = Component.translatable("gui.society_trading.balance", formatPrice(Integer.valueOf(this.menu.getPlayerBalance()).toString()));
-            pGuiGraphics.drawString(this.font, priceStr, (centralX * 3 ) + font.width(priceStr) - 18, LABEL_Y, 4210752, false);
+            Component priceStr = Component.translatable("gui.society_trading.balance", "§0" + formatPrice(Integer.valueOf(this.menu.getPlayerBalance()).toString(), false));
+            pGuiGraphics.drawString(this.font, priceStr, (centralX * 3) - font.width(priceStr) + 6, LABEL_Y, 16777215, false);
 
         }
     }
@@ -143,27 +146,32 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                     pGuiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
                     int j1 = k + 16;
                     int numismaticOffset = 0;
-                    if (shopOffer.hasNumismaticsCost()) {
-                        Component priceStr = Component.translatable("gui.society_trading.price", formatPrice(Integer.valueOf(shopOffer.getNumismaticsCost()).toString()));
-                        pGuiGraphics.drawString(this.font, priceStr, l + TRADE_BUTTON_WIDTH - font.width(priceStr) - 4, j1 + 4, 16777215, true);
-                        numismaticOffset = l + TRADE_BUTTON_WIDTH - font.width(priceStr) - 24;
-                    }
+                    int priceOffset = 5;
+                    if (shopOffer.hasNumismaticsCost()) numismaticOffset = l + TRADE_BUTTON_WIDTH - 21;
 
                     if (!itemstack1.is(NumismaticsTags.AllItemTags.COINS.tag)) {
                         this.renderAndDecorateCostA(pGuiGraphics, itemstack1, itemstack1, numismaticOffset > 0 ? numismaticOffset : l + TRADE_BUTTON_WIDTH - 21, j1);
+                        priceOffset += 18;
                     }
                     if (!itemstack2.isEmpty() && !itemstack2.is(NumismaticsTags.AllItemTags.COINS.tag)) {
                         pGuiGraphics.renderFakeItem(itemstack2, numismaticOffset > 0 ? numismaticOffset : i + TRADE_BUTTON_WIDTH + 52, j1);
                         pGuiGraphics.renderItemDecorations(this.font, itemstack2, numismaticOffset > 0 ? numismaticOffset : i + TRADE_BUTTON_WIDTH + 52, j1);
+                        priceOffset += 18;
                     }
+                    if (shopOffer.hasNumismaticsCost()) {
+                        Component priceStr = Component.translatable("gui.society_trading.price", formatPrice(Integer.valueOf(shopOffer.getNumismaticsCost()).toString()));
+                        pGuiGraphics.drawString(this.font, priceStr, l + TRADE_BUTTON_WIDTH - font.width(priceStr) - priceOffset, j1 + 4, 16777215, true);
 
+                    }
+                    // TODO: render item costs to the right of bank account costs
                     //result
-                    int lineLength = 128;
+                    int lineLength = 96;
                     Component itemName = itemstack3.getHoverName();
                     boolean oneLine = this.font.split(itemName, lineLength).size() == 1;
-                    pGuiGraphics.renderFakeItem(itemstack3, l, j1);
-                    pGuiGraphics.renderItemDecorations(this.font, itemstack3, l, j1);
-                    pGuiGraphics.drawWordWrap(this.font, itemName, l + 16 + 4, j1 + (oneLine ? 4 : 0), lineLength, 16777215);
+                    pGuiGraphics.renderFakeItem(itemstack3, l + 1, j1);
+                    pGuiGraphics.renderItemDecorations(this.font, itemstack3, l + 1, j1);
+                    pGuiGraphics.drawWordWrap(this.font, itemName.plainCopy().withStyle(ChatFormatting.DARK_GRAY), l + 16 + 5, j1 + (oneLine ? 5 : 1), lineLength, 4210752);
+                    pGuiGraphics.drawWordWrap(this.font, itemName.plainCopy().withStyle(ChatFormatting.WHITE), l + 16 + 4, j1 + (oneLine ? 4 : 0), lineLength, 16777215);
                     pGuiGraphics.pose().popPose();
                     k += TRADE_BUTTON_HEIGHT;
                     ++i1;

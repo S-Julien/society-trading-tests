@@ -52,6 +52,16 @@
         "item": "minecraft:emerald",
         "count": 1
       }
+    },
+    {
+      "offer": {
+        "item": "minecraft:totem_of_undying",
+        "count": 1
+      },
+      "request": {
+        "item": "minecraft:emerald",
+        "count": 1
+      }
     }
   ]
 }

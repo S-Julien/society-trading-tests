@@ -45,19 +45,25 @@ public class ShopData {
     }
 
     public static String formatPrice(String number) {
-        if (number.length() < 4) return number;
-        if (number.length() > 9) return number.charAt(0) + "." + number.charAt(1) + "B";
-        if (number.length() > 6) {
-            StringBuilder out = new StringBuilder(3);
-            for (int i = 0; i < number.length() - 6 ; i++) {
-                out.append(number.charAt(i));
+        return formatPrice(number, true);
+    }
+
+    public static String formatPrice(String number, boolean truncateMillionsBillions) {
+        if (truncateMillionsBillions) {
+            if (number.length() < 4) return number;
+            if (number.length() > 9) return number.charAt(0) + "." + number.charAt(1) + "B";
+            if (number.length() > 6) {
+                StringBuilder out = new StringBuilder(3);
+                for (int i = 0; i < number.length() - 6; i++) {
+                    out.append(number.charAt(i));
+                }
+                if (number.length() == 7) {
+                    out.append('.');
+                    out.append(number.charAt(1));
+                }
+                out.append("M");
+                return out.toString();
             }
-            if (number.length() == 7) {
-                out.append('.');
-                out.append(number.charAt(1));
-            }
-            out.append("M");
-            return out.toString();
         }
         int start = number.length() % 3;
         StringBuilder out = new StringBuilder(number.length() + (number.length()/3));

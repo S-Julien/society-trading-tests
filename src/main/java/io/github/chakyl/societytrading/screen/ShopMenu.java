@@ -1,11 +1,13 @@
 package io.github.chakyl.societytrading.screen;
 
-import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import dev.ithundxr.createnumismatics.Numismatics;
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
+import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.data.ShopRegistry;
+import io.github.chakyl.societytrading.network.ClientBoundBalancePacket;
+import io.github.chakyl.societytrading.network.PacketHandler;
 import io.github.chakyl.societytrading.registry.ModElements;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
@@ -14,6 +16,7 @@ import io.github.chakyl.societytrading.util.ShopData;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenCustomHashMap;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -53,6 +56,7 @@ public class ShopMenu extends AbstractContainerMenu {
     private ShopOffer selectedTrade;
     private final ShopOffers trades;
     private int quickSlotIteration = 0;
+    private int playerBalance = 0;
 
     public ShopMenu(int pContainerId, Inventory pPlayerInventory) {
         this(pContainerId, pPlayerInventory, null);
@@ -71,6 +75,7 @@ public class ShopMenu extends AbstractContainerMenu {
         this.player = pPlayerInventory.player;
         this.level = pPlayerInventory.player.level();
         this.playerInventory = pPlayerInventory;
+        this.playerBalance = fetchPlayerBalance();
         this.containerId = pContainerId;
         this.resultSlot = this.addSlot(new ShopResultSlot(this.result, 0, 260, 126));
         for (int i = 0; i < 3; ++i) {
@@ -271,13 +276,28 @@ public class ShopMenu extends AbstractContainerMenu {
         return this.trades;
     }
 
-    public int getPlayerBalance() {
+    public void syncPlayerBalance() {
+        SocietyTrading.LOGGER.info("Attempting sync for " + this.player);
+        if (!this.level.isClientSide()) {
+            SocietyTrading.LOGGER.info("Sync passed. Sending " + this.getPlayerBalance());
+            PacketHandler.sendToPlayer(new ClientBoundBalancePacket(this.getPlayerBalance()), (ServerPlayer) this.player);
+        }
+    }
+
+    public int fetchPlayerBalance() {
         if (!SocietyTrading.NUMISMATICS_INSTALLED || this.level.isClientSide()) return 0;
         if (this.player == null) return 0;
         BankAccount account = Numismatics.BANK.getAccount(this.player.getUUID());
         if (account == null || !account.isAuthorized(this.player.getUUID())) return 0;
-        SocietyTrading.LOGGER.info(account.getBalance());
         return account.getBalance();
+    }
+
+    public int getPlayerBalance() {
+        return this.playerBalance;
+    }
+
+    public void setPlayerBalance(int balance) {
+        this.playerBalance = balance;
     }
 
     public String getTexture() {
