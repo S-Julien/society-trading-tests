@@ -1,13 +1,10 @@
 package io.github.chakyl.societytrading.network;
 
-import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.screen.ShopMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.NetworkEvent;
-
 
 import java.util.function.Supplier;
 
@@ -30,7 +27,6 @@ public class ClientBoundBalancePacket {
         Player player = Minecraft.getInstance().player;
         if (player != null) {
             if (player.containerMenu instanceof ShopMenu menu && menu.stillValid(player)) {
-                SocietyTrading.LOGGER.info(this.balance);
                 menu.setPlayerBalance(this.balance);
                 menu.broadcastChanges();
             }

@@ -5,6 +5,8 @@ import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import sereneseasons.api.season.SeasonHelper;
 
@@ -16,7 +18,7 @@ public class ShopData {
     public static Collection<Shop> getFilteredShops(Collection<Shop> shops, Player player) {
         Collection<Shop> newShops = new ArrayList<>();
         for (Shop shop : shops) {
-            boolean flag = true;
+            boolean flag = !shop.hiddenFromSelector();
             if (SocietyTrading.KUBEJS_INSTALLED) {
                 if (!shop.stageRequired().isEmpty() && !Stages.get(player).has(shop.stageRequired())) {
                     flag = false;
@@ -32,6 +34,20 @@ public class ShopData {
             }
         }
         return newShops;
+    }
+
+    public static Shop getShopFromEntity(Collection<Shop> shops, LivingEntity entity) {
+        for (Shop shop : shops) {
+            if (shop.entity() == entity.getType()) return shop;
+        }
+        return null;
+    }
+
+    public static Shop getShopFromVillagerProfession(Collection<Shop> shops, String profession) {
+        for (Shop shop : shops) {
+            if (shop.villagerProfession().equals(profession)) return shop;
+        }
+        return null;
     }
 
     public static ShopOffers getFilteredTrades(ShopOffers trades, Player player) {

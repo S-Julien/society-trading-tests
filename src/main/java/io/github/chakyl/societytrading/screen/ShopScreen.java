@@ -9,6 +9,7 @@ import io.github.chakyl.societytrading.network.ServerBoundTriggerBalanceSyncPack
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -18,8 +19,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.github.chakyl.societytrading.util.ShopData.formatPrice;
 
@@ -46,7 +51,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     private static final int SCROLL_BAR_START_X = 274;
     private static final Component TRADES_LABEL = Component.translatable("merchant.trades");
     private int shopItem;
-    private final ShopScreen.TradeOfferButton[] tradeOfferButtons = new ShopScreen.TradeOfferButton[NUMBER_OF_OFFER_BUTTONS];
+    private final TradeOfferButton[] tradeOfferButtons = new TradeOfferButton[NUMBER_OF_OFFER_BUTTONS];
     int scrollOff;
     private boolean isDragging;
 
@@ -69,9 +74,9 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
 
         PacketHandler.sendToServer(new ServerBoundTriggerBalanceSyncPacket());
         for (int l = 0; l < NUMBER_OF_OFFER_BUTTONS; ++l) {
-            this.tradeOfferButtons[l] = this.addRenderableWidget(new ShopScreen.TradeOfferButton(i + 88, k, l, (button) -> {
-                if (button instanceof ShopScreen.TradeOfferButton) {
-                    this.shopItem = ((ShopScreen.TradeOfferButton) button).getIndex() + this.scrollOff;
+            this.tradeOfferButtons[l] = this.addRenderableWidget(new TradeOfferButton(i + 88, k, l, (button) -> {
+                if (button instanceof TradeOfferButton) {
+                    this.shopItem = ((TradeOfferButton) button).getIndex() + this.scrollOff;
                     this.postButtonClick();
                 }
 
@@ -86,7 +91,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         pGuiGraphics.drawString(this.font, this.title, 6, LABEL_Y, 4210752, false);
         pGuiGraphics.drawString(this.font, TRADES_LABEL, centralX, LABEL_Y, 4210752, false);
         pGuiGraphics.drawString(this.font, this.playerInventoryTitle, centralX, 110, 4210752, false);
-        if (SocietyTrading.NUMISMATICS_INSTALLED) {
+        if (this.menu.getPlayerBalance() > 0) {
             Component priceStr = Component.translatable("gui.society_trading.balance", "§0" + formatPrice(Integer.valueOf(this.menu.getPlayerBalance()).toString(), false));
             pGuiGraphics.drawString(this.font, priceStr, (centralX * 3) - font.width(priceStr) + 6, LABEL_Y, 16777215, false);
 
@@ -145,23 +150,23 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                     pGuiGraphics.pose().pushPose();
                     pGuiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
                     int j1 = k + 16;
+                    boolean noBalance = this.menu.getPlayerBalance() == 0;
                     int numismaticOffset = 0;
                     int priceOffset = 5;
-                    if (shopOffer.hasNumismaticsCost()) numismaticOffset = l + TRADE_BUTTON_WIDTH - 21;
+                    if (shopOffer.hasNumismaticsCost() && !noBalance) numismaticOffset = l + TRADE_BUTTON_WIDTH - 21;
 
-                    if (!itemstack1.is(NumismaticsTags.AllItemTags.COINS.tag)) {
+                    if (!itemstack1.is(NumismaticsTags.AllItemTags.COINS.tag) || noBalance) {
                         this.renderAndDecorateCostA(pGuiGraphics, itemstack1, itemstack1, numismaticOffset > 0 ? numismaticOffset : l + TRADE_BUTTON_WIDTH - 21, j1);
                         priceOffset += 18;
                     }
-                    if (!itemstack2.isEmpty() && !itemstack2.is(NumismaticsTags.AllItemTags.COINS.tag)) {
+                    if (!itemstack2.isEmpty() && (!itemstack2.is(NumismaticsTags.AllItemTags.COINS.tag) || noBalance)) {
                         pGuiGraphics.renderFakeItem(itemstack2, numismaticOffset > 0 ? numismaticOffset : i + TRADE_BUTTON_WIDTH + 52, j1);
                         pGuiGraphics.renderItemDecorations(this.font, itemstack2, numismaticOffset > 0 ? numismaticOffset : i + TRADE_BUTTON_WIDTH + 52, j1);
                         priceOffset += 18;
                     }
-                    if (shopOffer.hasNumismaticsCost()) {
+                    if (shopOffer.hasNumismaticsCost() && !noBalance) {
                         Component priceStr = Component.translatable("gui.society_trading.price", formatPrice(Integer.valueOf(shopOffer.getNumismaticsCost()).toString()));
                         pGuiGraphics.drawString(this.font, priceStr, l + TRADE_BUTTON_WIDTH - font.width(priceStr) - priceOffset, j1 + 4, 16777215, true);
-
                     }
                     // TODO: render item costs to the right of bank account costs
                     //result
@@ -180,7 +185,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                 }
             }
 
-            for (ShopScreen.TradeOfferButton ShopScreen$tradeofferbutton : this.tradeOfferButtons) {
+            for (TradeOfferButton ShopScreen$tradeofferbutton : this.tradeOfferButtons) {
                 if (ShopScreen$tradeofferbutton.isHoveredOrFocused()) {
                     ShopScreen$tradeofferbutton.renderToolTip(pGuiGraphics, pMouseX, pMouseY);
                 }
@@ -204,7 +209,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
             pGuiGraphics.pose().pushPose();
             pGuiGraphics.pose().translate(0.0F, 0.0F, 200.0F);
             String count = pRealCost.getCount() == 1 ? "1" : String.valueOf(pRealCost.getCount());
-            font.drawInBatch(count, (float) (pX + 14) + 19 - 2 - font.width(count), (float) pY + 6 + 3, 0xFFFFFF, true, pGuiGraphics.pose().last().pose(), pGuiGraphics.bufferSource(), net.minecraft.client.gui.Font.DisplayMode.NORMAL, 0, 15728880, false);
+            font.drawInBatch(count, (float) (pX + 14) + 19 - 2 - font.width(count), (float) pY + 6 + 3, 0xFFFFFF, true, pGuiGraphics.pose().last().pose(), pGuiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880, false);
             pGuiGraphics.pose().popPose();
             pGuiGraphics.pose().pushPose();
             pGuiGraphics.pose().translate(0.0F, 0.0F, 300.0F);
@@ -287,10 +292,18 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     class TradeOfferButton extends Button {
         final int index;
 
-        public TradeOfferButton(int pX, int pY, int pIndex, Button.OnPress pOnPress) {
+        public TradeOfferButton(int pX, int pY, int pIndex, OnPress pOnPress) {
             super(pX, pY, TRADE_BUTTON_WIDTH, TRADE_BUTTON_HEIGHT, CommonComponents.EMPTY, pOnPress, DEFAULT_NARRATION);
             this.index = pIndex;
             this.visible = false;
+        }
+
+        private void priceTooltip(GuiGraphics pGuiGraphics, int price, int pMouseX, int pMouseY) {
+            List<Component> tooltipList = new ArrayList<>(2);
+            tooltipList.add(Component.translatable("gui.society_trading.hover_price_one",  formatPrice(String.valueOf(price), false)));
+            tooltipList.add(Component.translatable("gui.society_trading.hover_price_two").withStyle(ChatFormatting.GREEN));
+
+            pGuiGraphics.renderTooltip(ShopScreen.this.font, tooltipList, Items.ACACIA_FENCE.getDefaultInstance().getTooltipImage(), pMouseX, pMouseY);
         }
 
         public int getIndex() {
@@ -299,17 +312,44 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
 
         public void renderToolTip(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
             if (this.isHovered && ShopScreen.this.menu.getOffers().size() > this.index + ShopScreen.this.scrollOff) {
+                boolean noBalance = ShopScreen.this.menu.getPlayerBalance() == 0;
+                ShopOffer offer = ShopScreen.this.menu.getOffers().get(this.index + ShopScreen.this.scrollOff);
+                ItemStack itemstack1 = offer.getCostA();
+                ItemStack itemstack2 = offer.getCostB();
+                ItemStack rightMostStack = itemstack1;
+                boolean renderPrice = offer.hasNumismaticsCost() && !noBalance;
+
+                // Determining order of the tooltip since items shift to the right when Numismatics value provided and player has a balance
+                if (renderPrice) {
+                    if (!itemstack2.isEmpty()) {
+                        if (itemstack2.is(NumismaticsTags.AllItemTags.COINS.tag)) {
+                            itemstack2 = ItemStack.EMPTY;
+                        } else {
+                            rightMostStack = itemstack2;
+                            itemstack2 = ItemStack.EMPTY;
+                        }
+                    }
+                    if (rightMostStack.is(NumismaticsTags.AllItemTags.COINS.tag)) {
+                        rightMostStack = ItemStack.EMPTY;
+                    }
+                }
+
                 if (pMouseX < this.getX() + 20) {
-                    ItemStack itemstack = ShopScreen.this.menu.getOffers().get(this.index + ShopScreen.this.scrollOff).getResult();
+                    ItemStack itemstack = offer.getResult();
                     pGuiGraphics.renderTooltip(ShopScreen.this.font, itemstack, pMouseX, pMouseY);
                 } else if (pMouseX < this.getX() + 165 && pMouseX > this.getX() + 148) {
-                    ItemStack itemstack2 = ShopScreen.this.menu.getOffers().get(this.index + ShopScreen.this.scrollOff).getCostB();
                     if (!itemstack2.isEmpty()) {
                         pGuiGraphics.renderTooltip(ShopScreen.this.font, itemstack2, pMouseX, pMouseY);
                     }
                 } else if (pMouseX > this.getX() + 164) {
-                    ItemStack itemstack1 = ShopScreen.this.menu.getOffers().get(this.index + ShopScreen.this.scrollOff).getCostA();
-                    pGuiGraphics.renderTooltip(ShopScreen.this.font, itemstack1, pMouseX, pMouseY);
+                    if (!rightMostStack.isEmpty()) {
+                        pGuiGraphics.renderTooltip(ShopScreen.this.font, rightMostStack, pMouseX, pMouseY);
+                    } else if (renderPrice) {
+                        this.priceTooltip(pGuiGraphics, offer.getNumismaticsCost(), pMouseX, pMouseY);
+                    }
+                }
+                if (renderPrice && pMouseX > this.getX() + 116 && pMouseX < this.getX() + 165) {
+                    this.priceTooltip(pGuiGraphics, offer.getNumismaticsCost(), pMouseX, pMouseY);
                 }
             }
 

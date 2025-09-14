@@ -1,7 +1,8 @@
 {
   "shop_id": "banker",
   "name": "shop.society_trading.banker",
-  "texture": "minecraft:textures/block/cartography_table_side",
+  "texture": "minecraft:textures/block/cartography_table_top",
+  "entity": "minecraft:cow",
   "trades": [
     {
       "offer": {

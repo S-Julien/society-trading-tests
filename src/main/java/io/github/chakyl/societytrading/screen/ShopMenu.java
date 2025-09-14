@@ -2,6 +2,7 @@ package io.github.chakyl.societytrading.screen;
 
 import dev.ithundxr.createnumismatics.Numismatics;
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
+import dev.ithundxr.createnumismatics.registry.NumismaticsTags;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
@@ -17,6 +18,9 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenCustomHashMap;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -57,6 +61,7 @@ public class ShopMenu extends AbstractContainerMenu {
     private final ShopOffers trades;
     private int quickSlotIteration = 0;
     private int playerBalance = 0;
+    private long lastSoundTime;
 
     public ShopMenu(int pContainerId, Inventory pPlayerInventory) {
         this(pContainerId, pPlayerInventory, null);
@@ -124,8 +129,12 @@ public class ShopMenu extends AbstractContainerMenu {
         }
     }
 
+    private boolean canAffordOrNotRelevant(ShopOffer trade) {
+        return this.playerBalance <= 0 || !trade.hasNumismaticsCost() || this.playerBalance >= trade.getNumismaticsCost();
+    }
+
     private boolean canTradeFor(ShopOffer selectedTrade) {
-        return this.getConsumedMaterialItems(selectedTrade) != null;
+        return this.getConsumedMaterialItems(selectedTrade) != null && this.canAffordOrNotRelevant(selectedTrade);
     }
 
     public void trade(ShopOffer offer, Inventory pPlayerInventory) {
@@ -133,6 +142,11 @@ public class ShopMenu extends AbstractContainerMenu {
         if (items != null) {
             this.removeItems(items, pPlayerInventory);
         }
+        if (this.playerBalance > 0 && offer.hasNumismaticsCost()) {
+            this.getPlayerAccount().deduct(offer.getNumismaticsCost());
+            this.updateBalance();
+        }
+
     }
 
     private void removeItems(Map<Item, Integer> items, Inventory pPlayerInventory) {
@@ -176,6 +190,7 @@ public class ShopMenu extends AbstractContainerMenu {
     }
 
     private Map<Item, Integer> addConsumedMaterial(Map<Item, Integer> materials, Map<Item, Integer> counts, ItemStack stack) {
+        if (this.playerBalance > 0 && stack.is(NumismaticsTags.AllItemTags.COINS.tag)) return materials;
         int remaining = stack.getCount();
         Item item = stack.getItem();
         int count = counts.getOrDefault(item, 0);
@@ -232,7 +247,7 @@ public class ShopMenu extends AbstractContainerMenu {
                 if (pIndex == this.resultSlot.index) {
                     Item item = slotStack.getItem();
                     item.onCraftedBy(slotStack, pPlayer.level(), pPlayer);
-                    if (!this.moveItemStackTo(slotStack, 2, this.slots.size(), true)) {
+                    if (!this.moveItemStackTo(slotStack, 1, this.slots.size(), true)) {
                         return ItemStack.EMPTY;
                     }
                     slot.onQuickCraft(slotStack, stack);
@@ -277,18 +292,32 @@ public class ShopMenu extends AbstractContainerMenu {
     }
 
     public void syncPlayerBalance() {
-        SocietyTrading.LOGGER.info("Attempting sync for " + this.player);
         if (!this.level.isClientSide()) {
-            SocietyTrading.LOGGER.info("Sync passed. Sending " + this.getPlayerBalance());
             PacketHandler.sendToPlayer(new ClientBoundBalancePacket(this.getPlayerBalance()), (ServerPlayer) this.player);
         }
+    }
+
+    public void updateBalance() {
+        int balance = this.fetchPlayerBalance();
+        this.setPlayerBalance(balance);
+        if (!this.level.isClientSide()) {
+            PacketHandler.sendToPlayer(new ClientBoundBalancePacket(balance), (ServerPlayer) this.player);
+        }
+    }
+
+    private BankAccount getPlayerAccount() {
+        if (this.player == null) return null;
+        BankAccount account = Numismatics.BANK.getAccount(this.player.getUUID());
+        if (account == null || !account.isAuthorized(this.player.getUUID())) return null;
+        return account;
     }
 
     public int fetchPlayerBalance() {
         if (!SocietyTrading.NUMISMATICS_INSTALLED || this.level.isClientSide()) return 0;
         if (this.player == null) return 0;
-        BankAccount account = Numismatics.BANK.getAccount(this.player.getUUID());
-        if (account == null || !account.isAuthorized(this.player.getUUID())) return 0;
+        BankAccount account = this.getPlayerAccount();
+
+        if (account == null) return 0;
         return account.getBalance();
     }
 
@@ -327,6 +356,10 @@ public class ShopMenu extends AbstractContainerMenu {
         if (this.selectedTrade != null && this.canTradeFor(this.selectedTrade)) {
             this.trade(this.selectedTrade, player.getInventory());
             ShopMenu.this.updateResultSlot();
+            long time = level.getGameTime();
+            if (this.lastSoundTime != (this.lastSoundTime = time)) {
+                level.playSound(null, player, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.2F, Mth.randomBetween(player.level().getRandom(), 1.2F, 0.0F));
+            }
         }
     }
 }

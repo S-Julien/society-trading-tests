@@ -10,6 +10,8 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -23,14 +25,14 @@ public class ModElements {
 
 
     static BlockBehaviour.Properties defaultBehavior = BlockBehaviour.Properties.copy(net.minecraft.world.level.block.Blocks.IRON_BLOCK);
-
-    public static class Blocks {
-
-        public static final RegistryObject<Block> SHOP_BLOCK = R.block("shop_block", () -> new ShopBlock(defaultBehavior.strength(4, 3000).noOcclusion()));
-
-        private static void bootstrap() {
-        }
-    }
+//
+//    public static class Blocks {
+//
+//        public static final RegistryObject<Block> SHOP_BLOCK = R.block("shop_block", () -> new ShopBlock(defaultBehavior.strength(4, 3000).noOcclusion()));
+//
+//        private static void bootstrap() {
+//        }
+//    }
 
     public static class BlockEntities {
 
@@ -38,8 +40,15 @@ public class ModElements {
         }
     }
 
-    public static class Items {
-        public static final RegistryObject<BlockItem> SHOP_BLOCK = R.item("shop_block", () -> new BlockItem(Blocks.SHOP_BLOCK.get(), new Item.Properties()));
+//    public static class Items {
+//        public static final RegistryObject<BlockItem> SHOP_BLOCK = R.item("shop_block", () -> new BlockItem(Blocks.SHOP_BLOCK.get(), new Item.Properties()));
+//
+//        private static void bootstrap() {
+//        }
+//    }
+
+    public static class Tags {
+        public static final TagKey<Block> OPENS_SHOP_SELECTOR = BlockTags.create(new ResourceLocation(SocietyTrading.MODID, "opens_shop_selector"));
 
         private static void bootstrap() {
         }
@@ -52,22 +61,23 @@ public class ModElements {
         private static void bootstrap() {
         }
     }
+//    public static class Tabs {
+//        public static final ResourceKey<CreativeModeTab> TAB_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(SocietyTrading.MODID, "tab"));
+//
+//        public static final RegistryObject<CreativeModeTab> AB = R.tab("tab",
+//                () -> CreativeModeTab.builder().title(Component.translatable("itemGroup." + SocietyTrading.MODID)).icon(() -> Items.SHOP_BLOCK.get().getDefaultInstance()).build());
+//
+//        private static void bootstrap() {
+//        }
+//    }
 
-    public static class Tabs {
-        public static final ResourceKey<CreativeModeTab> TAB_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(SocietyTrading.MODID, "tab"));
-
-        public static final RegistryObject<CreativeModeTab> AB = R.tab("tab",
-                () -> CreativeModeTab.builder().title(Component.translatable("itemGroup." + SocietyTrading.MODID)).icon(() -> Items.SHOP_BLOCK.get().getDefaultInstance()).build());
-
-        private static void bootstrap() {
-        }
-    }
 
     public static void bootstrap() {
-        Blocks.bootstrap();
+//        Blocks.bootstrap();
         BlockEntities.bootstrap();
-        Items.bootstrap();
+//        Items.bootstrap();
+        Tags.bootstrap();
         Menus.bootstrap();
-        Tabs.bootstrap();
+//        Tabs.bootstrap();
     }
 }

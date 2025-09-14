@@ -3,9 +3,12 @@
   "itemGroup.society_trading": "Society Trading",
 
   "gui.society_trading.price": "$%s",
+  "gui.society_trading.hover_price_one": "Price: $%s",
+  "gui.society_trading.hover_price_two": "From bank account",
   "gui.society_trading.balance": "§0$%s",
   "gui.society_trading.shop_selector.title": "Shops",
   "shop.society_trading.blacksmith": "Blacksmith",
   "shop.society_trading.fisher": "Fisher",
-  "shop.society_trading.librarian": "Librarian"
+  "shop.society_trading.librarian": "Librarian",
+  "shop.society_trading.banker": "Banker"
 }

@@ -23,26 +23,17 @@ public class SocietyTrading {
     public static boolean KUBEJS_INSTALLED = false;
     public static boolean NUMISMATICS_INSTALLED = false;
     public static boolean NUMISMATICS_UTILS_INSTALLED = false;
-    public static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
-            .named(new ResourceLocation(MODID, MODID))
-            .clientAcceptedVersions(s -> true)
-            .serverAcceptedVersions(s -> true)
-            .networkProtocolVersion(() -> "1.0.0")
-            .simpleChannel();
-
     public SocietyTrading() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.register(this);
-//        SlimyConfig.load();
         ModElements.bootstrap();
-//        MessageHelper.registerMessage(CHANNEL, 0, new SlimyConfig.ConfigMessage.Provider());
     }
 
     @SubscribeEvent
     public void setup(FMLCommonSetupEvent e) {
-        e.enqueueWork(() -> {
-            TabFillingRegistry.register(ModElements.Tabs.TAB_KEY, ModElements.Items.SHOP_BLOCK);
-        });
+//        e.enqueueWork(() -> {
+//            TabFillingRegistry.register(ModElements.Tabs.TAB_KEY, ModElements.Items.SHOP_BLOCK);
+//        });
         ShopRegistry.INSTANCE.registerToBus();
     }
 

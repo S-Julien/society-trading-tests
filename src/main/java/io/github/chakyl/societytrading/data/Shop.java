@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -19,7 +20,10 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,14 +40,15 @@ import java.util.List;
  * @param seasonsRequired Serene Seasons season to display the trade
  * @param trades          Trade object
  */
-public record Shop(String shopID, MutableComponent name, String texture, String stageRequired,
+public record Shop(String shopID, MutableComponent name, String texture, String villagerProfession,
+                   EntityType<? extends LivingEntity> entity, Boolean hiddenFromSelector, String stageRequired,
                    List<String> seasonsRequired, ShopOffers trades) implements CodecProvider<Shop> {
 
     public static final Codec<Shop> CODEC = new ShopCodec();
     public static final List<String> POSSIBLE_SEASONS = Arrays.asList("early_spring", "mid_spring", "late_spring", "early_summer", "mid_summer", "late_summer", "early_autumn", "mid_autumn", "late_autumn", "early_winter", "mid_winter", "late_winter");
 
     public Shop(Shop other) {
-        this(other.shopID, other.name, other.texture, other.stageRequired, other.seasonsRequired, other.trades);
+        this(other.shopID, other.name, other.texture, other.villagerProfession, other.entity, other.hiddenFromSelector, other.stageRequired, other.seasonsRequired, other.trades);
     }
 
     public int getColor() {
@@ -79,7 +84,10 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
             obj.addProperty("shop_id", input.shopID);
             obj.addProperty("name", ((TranslatableContents) input.name.getContents()).getKey());
             obj.addProperty("texture", input.texture);
-            obj.addProperty("stageRequired", input.stageRequired);
+            obj.addProperty("villager_profession", input.villagerProfession);
+            obj.addProperty("entity", EntityType.getKey(input.entity).toString());
+            obj.addProperty("hidden_from_selector", input.hiddenFromSelector);
+            obj.addProperty("stage_required", input.stageRequired);
             JsonArray seasonsRequired = new JsonArray();
             obj.add("seasons_required", seasonsRequired);
             for (String season : input.seasonsRequired) {
@@ -130,6 +138,21 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
             String shopId = GsonHelper.getAsString(obj, "shop_id");
             MutableComponent name = Component.translatable(GsonHelper.getAsString(obj, "name"));
             String texture = GsonHelper.getAsString(obj, "texture");
+            String villagerProfession = "";
+            if (obj.has("villager_profession")) {
+                villagerProfession = GsonHelper.getAsString(obj, "villager_profession");
+            }
+            EntityType<? extends LivingEntity> entity = null;
+            if (obj.has("entity")) {
+                String entityStr = GsonHelper.getAsString(obj, "entity");
+                entity = (EntityType) ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(entityStr));
+                if (entity == EntityType.PIG && !"minecraft:pig".equals(entityStr))
+                    throw new JsonParseException("Shop has entity type " + entityStr);
+            }
+            boolean hiddenFromSelector = false;
+            if (obj.has("hidden_from_selector")) {
+                hiddenFromSelector = GsonHelper.getAsBoolean(obj, "hidden_from_selector");
+            }
             String stageRequired = "";
             if (obj.has("stage_required")) {
                 stageRequired = GsonHelper.getAsString(obj, "stage_required");
@@ -168,7 +191,7 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
 
                 }
             }
-            return DataResult.success(Pair.of(new Shop(shopId, name, texture, stageRequired, seasonsRequired, trades), input));
+            return DataResult.success(Pair.of(new Shop(shopId, name, texture, villagerProfession, entity, hiddenFromSelector, stageRequired, seasonsRequired, trades), input));
         }
 
     }
