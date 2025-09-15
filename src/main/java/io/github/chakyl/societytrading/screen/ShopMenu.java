@@ -307,7 +307,15 @@ public class ShopMenu extends AbstractContainerMenu {
 
     private BankAccount getPlayerAccount() {
         if (this.player == null) return null;
-        BankAccount account = Numismatics.BANK.getAccount(this.player.getUUID());
+        BankAccount account = null;
+        if (SocietyTrading.NUMISMATICS_UTILS_INSTALLED) {
+            UUID cardUUID = getCardCurio(player);
+            if (cardUUID != null) {
+                account = Numismatics.BANK.getAccount(cardUUID);
+            } else return null;
+        } else {
+            Numismatics.BANK.getAccount(this.player.getUUID());
+        }
         if (account == null || !account.isAuthorized(this.player.getUUID())) return null;
         return account;
     }
@@ -315,19 +323,7 @@ public class ShopMenu extends AbstractContainerMenu {
     public int fetchPlayerBalance() {
         if (!SocietyTrading.NUMISMATICS_INSTALLED || this.level.isClientSide()) return 0;
         if (this.player == null) return 0;
-        BankAccount account;
-
-        if (SocietyTrading.NUMISMATICS_UTILS_INSTALLED) {
-            UUID cardUUID = getCardCurio(player);
-            if (cardUUID != null) {
-                account = Numismatics.BANK.getAccount(cardUUID);
-                if (account != null && account.isAuthorized(player)) {
-                    return account.getBalance();
-                }
-            }
-        }
-
-        account = this.getPlayerAccount();
+        BankAccount account = this.getPlayerAccount();
         if (account == null) return 0;
         return account.getBalance();
     }
