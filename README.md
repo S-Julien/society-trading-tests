@@ -1,2 +1,2 @@
-# splendid-slimes
- Slime Rancher in Minecraft!!!!!!!!
+# society-trading
+A data-driven trading mod
