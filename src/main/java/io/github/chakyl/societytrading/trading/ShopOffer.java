@@ -7,7 +7,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import sereneseasons.api.season.SeasonHelper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ShopOffer {
@@ -15,18 +14,20 @@ public class ShopOffer {
     private final ItemStack costB;
     private final ItemStack result;
     private final String stageRequired;
+    private final String stageOverride;
     private final List<String> seasonsRequired;
     private final int numismaticsCost;
 
-    public ShopOffer(ItemStack pCostA, ItemStack pResult, String pStageRequired, List<String> pSeasonsRequired, int pNumismaticsCost) {
-        this(pCostA, ItemStack.EMPTY, pResult, pStageRequired, pSeasonsRequired, pNumismaticsCost);
+    public ShopOffer(ItemStack pCostA, ItemStack pResult, String pStageRequired, String pStageOverride, List<String> pSeasonsRequired, int pNumismaticsCost) {
+        this(pCostA, ItemStack.EMPTY, pResult, pStageRequired, pStageOverride, pSeasonsRequired, pNumismaticsCost);
     }
 
-    public ShopOffer(ItemStack pCostA, ItemStack pCostB, ItemStack pResult, String pStageRequired, List<String> pSeasonsRequired, int pNumismaticsCost) {
+    public ShopOffer(ItemStack pCostA, ItemStack pCostB, ItemStack pResult, String pStageRequired, String pStageOverride, List<String> pSeasonsRequired, int pNumismaticsCost) {
         this.costA = pCostA;
         this.costB = pCostB;
         this.result = pResult;
         this.stageRequired = pStageRequired;
+        this.stageOverride = pStageOverride;
         this.seasonsRequired = pSeasonsRequired;
         this.numismaticsCost = pNumismaticsCost;
     }
@@ -47,7 +48,9 @@ public class ShopOffer {
     public String getStageRequired() {
         return this.stageRequired;
     }
-
+    public String getStageOverride() {
+        return this.stageOverride;
+    }
     public List<String> getSeasonsRequired() {
         return this.seasonsRequired;
     }
@@ -62,6 +65,9 @@ public class ShopOffer {
 
     public boolean playerCanSee(Player player) {
         if (SocietyTrading.KUBEJS_INSTALLED) {
+            if (!this.stageOverride.isEmpty() && Stages.get(player).has(this.stageOverride)) {
+                return true;
+            }
             if (!this.stageRequired.isEmpty() && !Stages.get(player).has(this.stageRequired)) {
                 return false;
             }

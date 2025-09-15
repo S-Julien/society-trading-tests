@@ -5,40 +5,53 @@ import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.state.BlockState;
 import sereneseasons.api.season.SeasonHelper;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 public class ShopData {
 
     public static Collection<Shop> getFilteredShops(Collection<Shop> shops, Player player) {
-        Collection<Shop> newShops = new ArrayList<>();
+        List<Shop> newShops = new ArrayList<>();
         for (Shop shop : shops) {
             boolean flag = !shop.hiddenFromSelector();
-            if (SocietyTrading.KUBEJS_INSTALLED) {
-                if (!shop.stageRequired().isEmpty() && !Stages.get(player).has(shop.stageRequired())) {
-                    flag = false;
-                }
-            }
             if (SocietyTrading.SERENE_SEASONS_INSTALLED) {
                 if (!shop.seasonsRequired().isEmpty() && !shop.seasonsRequired().contains(SeasonHelper.getSeasonState(player.level()).getSubSeason().getSerializedName())) {
                     flag = false;
                 }
             }
+            if (SocietyTrading.KUBEJS_INSTALLED) {
+                if (!shop.stageRequired().isEmpty() && !Stages.get(player).has(shop.stageRequired())) {
+                    flag = false;
+                }
+                if (!shop.stageOverride().isEmpty() && Stages.get(player).has(shop.stageRequired())) {
+                    flag = true;
+                }
+            }
+
             if (flag) {
                 newShops.add(shop);
             }
         }
+        ShopComparator comparator = new ShopComparator();
+        comparator.setSortingBy(ShopComparator.Order.ID);
+        Collections.sort(newShops, comparator);
         return newShops;
     }
 
     public static Shop getShopFromEntity(Collection<Shop> shops, LivingEntity entity) {
         for (Shop shop : shops) {
             if (shop.entity() == entity.getType()) return shop;
+        }
+        return null;
+    }
+
+    public static Shop getShopFromBlockState(Collection<Shop> shops, BlockState blockState) {
+        for (Shop shop : shops) {
+            if (shop.blockTag() != null && blockState.is(shop.blockTag())) return shop;
         }
         return null;
     }
@@ -82,11 +95,11 @@ public class ShopData {
             }
         }
         int start = number.length() % 3;
-        StringBuilder out = new StringBuilder(number.length() + (number.length()/3));
+        StringBuilder out = new StringBuilder(number.length() + (number.length() / 3));
         out.append(number, 0, start);
         for (int i = 0; i < number.length() / 3; i++) {
             if (i != 0 || start != 0) out.append(",");
-            out.append(number, i*3 + start, i*3 + start + 3);
+            out.append(number, i * 3 + start, i * 3 + start + 3);
         }
         return out.toString();
     }

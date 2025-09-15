@@ -16,6 +16,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerData;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.EntityInteract;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -63,10 +64,18 @@ public class ServerEvents {
         @SubscribeEvent
         public static void onBlockInteract(RightClickBlock event) {
             Entity player = event.getEntity();
-            Boolean openMenu = event.getLevel().getBlockState(event.getPos()).is(ModElements.Tags.OPENS_SHOP_SELECTOR);
-            if (openMenu && player instanceof ServerPlayer) {
-                if (!player.level().isClientSide) {
+            BlockState clickedBlock = event.getLevel().getBlockState(event.getPos());
+            if (player instanceof ServerPlayer && !player.level().isClientSide ) {
+                if (clickedBlock.is(ModElements.Tags.OPENS_SHOP_SELECTOR)) {
                     OptionalInt optionalint = ((ServerPlayer) player).openMenu(new SimpleMenuProvider((containerId, inventory, nPlayer) -> new SelectorMenu(containerId, inventory), Component.translatable("shop.society_trading.selector.name")));
+                    event.setCancellationResult(InteractionResult.SUCCESS);
+                    event.setCanceled(true);
+                }
+                Shop shop = ShopData.getShopFromBlockState(ShopRegistry.INSTANCE.getValues(),clickedBlock);
+                if (shop != null) {
+                    NetworkHooks.openScreen((ServerPlayer) player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, shop.shopID()), shop.name()), buffer -> {
+                        buffer.writeUtf(shop.shopID());
+                    });
                     event.setCancellationResult(InteractionResult.SUCCESS);
                     event.setCanceled(true);
                 }

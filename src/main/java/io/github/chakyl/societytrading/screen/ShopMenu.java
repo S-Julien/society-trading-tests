@@ -16,6 +16,7 @@ import io.github.chakyl.societytrading.util.ItemHash;
 import io.github.chakyl.societytrading.util.ShopData;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenCustomHashMap;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -32,11 +33,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.IntStream;
+
+import static io.github.chakyl.numismaticsutils.utils.CurioUtils.getCardCurio;
 
 public class ShopMenu extends AbstractContainerMenu {
     protected static final int PAYMENT1_SLOT = 0;
@@ -280,7 +280,7 @@ public class ShopMenu extends AbstractContainerMenu {
     }
 
     /**
-     * {@link net.minecraft.client.multiplayer.ClientPacketListener} uses this to set offers for the client side
+     * {@link ClientPacketListener} uses this to set offers for the client side
      * MerchantContainer.
      */
     public void setShop(Shop shop) {
@@ -315,8 +315,19 @@ public class ShopMenu extends AbstractContainerMenu {
     public int fetchPlayerBalance() {
         if (!SocietyTrading.NUMISMATICS_INSTALLED || this.level.isClientSide()) return 0;
         if (this.player == null) return 0;
-        BankAccount account = this.getPlayerAccount();
+        BankAccount account;
 
+        if (SocietyTrading.NUMISMATICS_UTILS_INSTALLED) {
+            UUID cardUUID = getCardCurio(player);
+            if (cardUUID != null) {
+                account = Numismatics.BANK.getAccount(cardUUID);
+                if (account != null && account.isAuthorized(player)) {
+                    return account.getBalance();
+                }
+            }
+        }
+
+        account = this.getPlayerAccount();
         if (account == null) return 0;
         return account.getBalance();
     }

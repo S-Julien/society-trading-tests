@@ -8,6 +8,7 @@ import io.github.chakyl.societytrading.network.ServerBoundTradeButtonClickPacket
 import io.github.chakyl.societytrading.network.ServerBoundTriggerBalanceSyncPacket;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
+import io.github.chakyl.societytrading.util.ScreenUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -155,16 +156,16 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                     int priceOffset = 5;
                     if (shopOffer.hasNumismaticsCost() && !noBalance) numismaticOffset = l + TRADE_BUTTON_WIDTH - 21;
 
-                    if (!itemstack1.is(NumismaticsTags.AllItemTags.COINS.tag) || noBalance) {
+                    if ((SocietyTrading.NUMISMATICS_INSTALLED && (!itemstack1.is(NumismaticsTags.AllItemTags.COINS.tag)) || noBalance)) {
                         this.renderAndDecorateCostA(pGuiGraphics, itemstack1, itemstack1, numismaticOffset > 0 ? numismaticOffset : l + TRADE_BUTTON_WIDTH - 21, j1);
                         priceOffset += 18;
                     }
-                    if (!itemstack2.isEmpty() && (!itemstack2.is(NumismaticsTags.AllItemTags.COINS.tag) || noBalance)) {
+                    if (!itemstack2.isEmpty() && ((SocietyTrading.NUMISMATICS_INSTALLED && !itemstack2.is(NumismaticsTags.AllItemTags.COINS.tag)) || noBalance)) {
                         pGuiGraphics.renderFakeItem(itemstack2, numismaticOffset > 0 ? numismaticOffset : i + TRADE_BUTTON_WIDTH + 52, j1);
                         pGuiGraphics.renderItemDecorations(this.font, itemstack2, numismaticOffset > 0 ? numismaticOffset : i + TRADE_BUTTON_WIDTH + 52, j1);
                         priceOffset += 18;
                     }
-                    if (shopOffer.hasNumismaticsCost() && !noBalance) {
+                    if (SocietyTrading.NUMISMATICS_INSTALLED && shopOffer.hasNumismaticsCost() && !noBalance) {
                         Component priceStr = Component.translatable("gui.society_trading.price", formatPrice(Integer.valueOf(shopOffer.getNumismaticsCost()).toString()));
                         pGuiGraphics.drawString(this.font, priceStr, l + TRADE_BUTTON_WIDTH - font.width(priceStr) - priceOffset, j1 + 4, 16777215, true);
                     }
@@ -175,8 +176,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                     boolean oneLine = this.font.split(itemName, lineLength).size() == 1;
                     pGuiGraphics.renderFakeItem(itemstack3, l + 1, j1);
                     pGuiGraphics.renderItemDecorations(this.font, itemstack3, l + 1, j1);
-                    pGuiGraphics.drawWordWrap(this.font, itemName.plainCopy().withStyle(ChatFormatting.DARK_GRAY), l + 16 + 5, j1 + (oneLine ? 5 : 1), lineLength, 4210752);
-                    pGuiGraphics.drawWordWrap(this.font, itemName.plainCopy().withStyle(ChatFormatting.WHITE), l + 16 + 4, j1 + (oneLine ? 4 : 0), lineLength, 16777215);
+                    ScreenUtils.drawWordWrapShadow(pGuiGraphics, this.font, itemName.plainCopy().withStyle(ChatFormatting.WHITE), l + 16 + 4, j1 + (oneLine ? 4 : 0), lineLength, 16777215);
                     pGuiGraphics.pose().popPose();
                     k += TRADE_BUTTON_HEIGHT;
                     ++i1;
@@ -300,7 +300,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
 
         private void priceTooltip(GuiGraphics pGuiGraphics, int price, int pMouseX, int pMouseY) {
             List<Component> tooltipList = new ArrayList<>(2);
-            tooltipList.add(Component.translatable("gui.society_trading.hover_price_one",  formatPrice(String.valueOf(price), false)));
+            tooltipList.add(Component.translatable("gui.society_trading.hover_price_one", formatPrice(String.valueOf(price), false)));
             tooltipList.add(Component.translatable("gui.society_trading.hover_price_two").withStyle(ChatFormatting.GREEN));
 
             pGuiGraphics.renderTooltip(ShopScreen.this.font, tooltipList, Items.ACACIA_FENCE.getDefaultInstance().getTooltipImage(), pMouseX, pMouseY);
@@ -317,7 +317,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                 ItemStack itemstack1 = offer.getCostA();
                 ItemStack itemstack2 = offer.getCostB();
                 ItemStack rightMostStack = itemstack1;
-                boolean renderPrice = offer.hasNumismaticsCost() && !noBalance;
+                boolean renderPrice = SocietyTrading.NUMISMATICS_INSTALLED && offer.hasNumismaticsCost() && !noBalance;
 
                 // Determining order of the tooltip since items shift to the right when Numismatics value provided and player has a balance
                 if (renderPrice) {
