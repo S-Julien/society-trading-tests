@@ -169,7 +169,6 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                         Component priceStr = Component.translatable("gui.society_trading.price", formatPrice(Integer.valueOf(shopOffer.getNumismaticsCost()).toString()));
                         pGuiGraphics.drawString(this.font, priceStr, l + TRADE_BUTTON_WIDTH - font.width(priceStr) - priceOffset, j1 + 4, 16777215, true);
                     }
-                    // TODO: render item costs to the right of bank account costs
                     //result
                     int lineLength = 96;
                     Component itemName = itemstack3.getHoverName();

@@ -3,6 +3,7 @@ package io.github.chakyl.societytrading.trading;
 import dev.latvian.mods.kubejs.stages.Stages;
 import io.github.chakyl.societytrading.SocietyTrading;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import sereneseasons.api.season.SeasonHelper;
@@ -17,12 +18,13 @@ public class ShopOffer {
     private final String stageOverride;
     private final List<String> seasonsRequired;
     private final int numismaticsCost;
+    MutableComponent unlockDescription;
 
-    public ShopOffer(ItemStack pCostA, ItemStack pResult, String pStageRequired, String pStageOverride, List<String> pSeasonsRequired, int pNumismaticsCost) {
-        this(pCostA, ItemStack.EMPTY, pResult, pStageRequired, pStageOverride, pSeasonsRequired, pNumismaticsCost);
+    public ShopOffer(ItemStack pCostA, ItemStack pResult, MutableComponent pUnlockDescription, String pStageRequired, String pStageOverride, List<String> pSeasonsRequired, int pNumismaticsCost) {
+        this(pCostA, ItemStack.EMPTY, pResult, pUnlockDescription, pStageRequired, pStageOverride, pSeasonsRequired, pNumismaticsCost);
     }
 
-    public ShopOffer(ItemStack pCostA, ItemStack pCostB, ItemStack pResult, String pStageRequired, String pStageOverride, List<String> pSeasonsRequired, int pNumismaticsCost) {
+    public ShopOffer(ItemStack pCostA, ItemStack pCostB, ItemStack pResult, MutableComponent pUnlockDescription, String pStageRequired, String pStageOverride, List<String> pSeasonsRequired, int pNumismaticsCost) {
         this.costA = pCostA;
         this.costB = pCostB;
         this.result = pResult;
@@ -30,6 +32,7 @@ public class ShopOffer {
         this.stageOverride = pStageOverride;
         this.seasonsRequired = pSeasonsRequired;
         this.numismaticsCost = pNumismaticsCost;
+        this.unlockDescription = pUnlockDescription;
     }
 
 
@@ -48,9 +51,14 @@ public class ShopOffer {
     public String getStageRequired() {
         return this.stageRequired;
     }
+
     public String getStageOverride() {
         return this.stageOverride;
     }
+    public MutableComponent getUnlockDescription() {
+        return this.unlockDescription;
+    }
+
     public List<String> getSeasonsRequired() {
         return this.seasonsRequired;
     }
