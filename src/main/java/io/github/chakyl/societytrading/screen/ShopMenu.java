@@ -239,7 +239,7 @@ public class ShopMenu extends AbstractContainerMenu {
     public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
         ItemStack stack = ItemStack.EMPTY;
         Slot slot = this.slots.get(pIndex);
-        if (this.quickSlotIteration < slot.getItem().getMaxStackSize()) {
+        if (slot.getItem().getCount() > 0 && this.quickSlotIteration < slot.getItem().getMaxStackSize() / slot.getItem().getCount()) {
             this.quickSlotIteration++;
             if (slot.hasItem()) {
                 ItemStack slotStack = slot.getItem();

@@ -117,7 +117,7 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                 JsonElement request = ItemAdapter.ITEM_READER.toJsonTree(trade.getCostA());
                 JsonObject requestJson = request.getAsJsonObject();
                 ResourceLocation requestItemName = new ResourceLocation(requestJson.get("item").getAsString());
-                JsonElement secondRequest = ItemAdapter.ITEM_READER.toJsonTree(trade.getCostA());
+                JsonElement secondRequest = ItemAdapter.ITEM_READER.toJsonTree(trade.getCostB());
                 JsonObject secondRequestJson = secondRequest.getAsJsonObject();
                 ResourceLocation secondRequestItemName = new ResourceLocation(secondRequestJson.get("item").getAsString());
                 JsonElement offer = ItemAdapter.ITEM_READER.toJsonTree(trade.getResult());
