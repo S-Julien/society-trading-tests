@@ -11,9 +11,10 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 public class CommonModEvents {
     @SubscribeEvent
     public static void commonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() ->{
+        event.enqueueWork(() -> {
             PacketHandler.register();
         });
+        event.enqueueWork(() -> SocietyTrading.CONTROLLABLE_INSTALLED = ModList.get().isLoaded("controllable"));
         event.enqueueWork(() -> SocietyTrading.SERENE_SEASONS_INSTALLED = ModList.get().isLoaded("sereneseasons"));
         event.enqueueWork(() -> SocietyTrading.KUBEJS_INSTALLED = ModList.get().isLoaded("kubejs"));
         event.enqueueWork(() -> SocietyTrading.NUMISMATICS_INSTALLED = ModList.get().isLoaded("numismatics"));
