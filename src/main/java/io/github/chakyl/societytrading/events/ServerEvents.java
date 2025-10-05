@@ -1,6 +1,7 @@
 package io.github.chakyl.societytrading.events;
 
 import io.github.chakyl.societytrading.SocietyTrading;
+import io.github.chakyl.societytrading.commands.OpenShopCommand;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.registry.ModElements;
@@ -18,6 +19,7 @@ import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.NameTagItem;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.EntityInteract;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -31,6 +33,11 @@ import static io.github.chakyl.societytrading.util.GeneralUtils.nameTagEntity;
 public class ServerEvents {
     @Mod.EventBusSubscriber(modid = SocietyTrading.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
     public static class ForgeEvents {
+        @SubscribeEvent
+        public static void onCommandRegister(RegisterCommandsEvent event) {
+            OpenShopCommand.register(event.getDispatcher());
+        }
+
         @SubscribeEvent
         public static void onEntityInteract(EntityInteract event) {
             Entity player = event.getEntity();
